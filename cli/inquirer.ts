@@ -27,11 +27,20 @@ module.exports = {
                 name: 'slpAddress',
                 type: 'input',
                 message: `Enter your SLP Address, which will receive all paid postage:`,
-                validate: async function(value) {
+                filter: value => {
+                    const isSLPAddress = bchjs.SLP.Address.isSLPAddress(value)
+                    if (!isSLPAddress)
+                        return ''
+                    return value
+                },
+                validate: (value): boolean | string => {
                     try {
-                        return bchjs.SLP.Address.isSLPAddress(value)
+                        const isSLPAddress = bchjs.SLP.Address.isSLPAddress(value)
+                        if(!isSLPAddress)
+                            throw Error('Please enter a valid SLP Address')
+                        return true
                     } catch (e) {
-                        return 'Please enter a valid SLP Address.'
+                        return 'Please enter a valid SLP Address'
                     }
                 },
             },

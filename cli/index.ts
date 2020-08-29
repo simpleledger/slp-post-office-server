@@ -3,7 +3,6 @@ const clear = require('clear')
 const figlet = require('figlet')
 const fs = require('fs')
 const inquirer = require('./inquirer')
-const { error } = require('console')
 const BigNumber = require('bignumber.js')
 
 clear()

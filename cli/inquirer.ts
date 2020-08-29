@@ -65,20 +65,18 @@ module.exports = {
                 message: 'Enter the token id for this stamp: ',
                 filter: async function(value) {
                     const tokenDetails = await bchjs.SLP.Utils.list(value)
-                    if (tokenDetails.id === 'not found') return ''
+                    if (tokenDetails.id === 'not found') return 'Token not found'
                     return `${tokenDetails.name} (${tokenDetails.id})`
-                },
-                validate: (value): boolean | string => {
-                    if (!value)
-                        return `Token not found. Please enter a valid token Id. Check simpleledger.info for more information.`
-                    return true
                 },
             },
             {
                 name: 'rate',
                 type: 'number',
                 message: 'Enter how many tokens will be charged per stamp: ',
-                validate: function(value) {
+                when: (answers): boolean => {
+                    return answers.tokenDetails !== 'Token not found';
+                },
+                validate: (value): boolean | string =>{
                     if (!isNaN(value)) {
                         return true
                     } else {
@@ -89,6 +87,7 @@ module.exports = {
             {
                 name: 'moreStamps',
                 type: 'confirm',
+                default: false,
                 message: 'Add more stamps? ',
             },
         ]

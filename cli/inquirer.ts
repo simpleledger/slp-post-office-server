@@ -3,6 +3,17 @@ const BCHJS = require('@chris.troutner/bch-js')
 const bchjs = new BCHJS()
 
 module.exports = {
+    askConfigFileQuestions: () => {
+        const questions = [
+            {
+                name: 'continueConfig',
+                type: 'confirm',
+                default: false,
+                message: 'There is a configuration file already in place. Do you want to continue? All data will be lost. ',
+            }
+        ]
+        return inquirerLib.prompt(questions)
+    },
     askWalletAndPostageQuestions: () => {
         const questions = [
             {

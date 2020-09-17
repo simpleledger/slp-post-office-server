@@ -5,12 +5,7 @@ import PaymentProtocol from 'bitcore-payment-protocol'
 import errorMessages from './utils/errorMessages'
 import { Transaction } from 'bitcoincashjs-lib'
 import { getNeededStamps, buildTransaction, splitUtxosIntoStamps } from './utils/transaction'
-import {
-    fetchUTXOsForNumberOfStampsNeeded,
-    validateSLPInputs,
-    fetchUTXOsForStampGeneration,
-    broadcastTransaction,
-} from './utils/network'
+import Network from './utils/network/Network'
 import BCHJS from '@chris.troutner/bch-js'
 import config from './config.json'
 
@@ -34,20 +29,21 @@ app.post('/postage', async function(req: any, res: express.Response) {
             res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE)
             return
         }
+        const network = new Network()
 
         const rootSeed = await bchjs.Mnemonic.toSeed(config.mnemonic)
         const hdNode = bchjs.HDNode.fromSeed(rootSeed)
         const keyPair = bchjs.HDNode.toKeyPair(hdNode)
         const payment = PaymentProtocol.Payment.decode(req.raw)
         const incomingTransaction = Transaction.fromHex(payment.transactions[0].toString('hex'))
-        await validateSLPInputs(incomingTransaction.ins)
+        await network.validateSLPInputs(incomingTransaction.ins)
         const neededStampsForTransaction = getNeededStamps(incomingTransaction)
-        const stamps = await fetchUTXOsForNumberOfStampsNeeded(
+        const stamps = await network.fetchUTXOsForNumberOfStampsNeeded(
             neededStampsForTransaction,
             bchjs.HDNode.toCashAddress(hdNode),
         )
         const stampedTransaction = buildTransaction(incomingTransaction, stamps, keyPair)
-        const transactionId = await broadcastTransaction(stampedTransaction)
+        const transactionId = await network.broadcastTransaction(stampedTransaction)
         const memo = `Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`
         payment.transactions[0] = stampedTransaction
         const paymentAck = paymentProtocol.makePaymentACK({ payment, memo }, 'BCH')
@@ -70,9 +66,10 @@ app.listen(3000, async () => {
     const generateStamps = async () => {
         console.log('Generating stamps...')
         try {
-            const utxosToSplit = await fetchUTXOsForStampGeneration(cashAddress)
+            const network = new Network()
+            const utxosToSplit = await network.fetchUTXOsForStampGeneration(cashAddress)
             const splitTransaction = splitUtxosIntoStamps(utxosToSplit, hdNode)
-            await broadcastTransaction(splitTransaction)
+            await network.broadcastTransaction(splitTransaction)
         } catch (e) {
             console.error(e.message || e.error || e)
         }

@@ -1,11 +1,11 @@
 import express = require('express')
 import cors = require('cors')
-import slpMiddleware from './utils/slpMiddleware'
+import slpMiddleware from './src/slpMiddleware'
 import PaymentProtocol from 'bitcore-payment-protocol'
-import errorMessages from './utils/errorMessages'
+import errorMessages from './src/errorMessages'
 import { Transaction } from 'bitcoincashjs-lib'
-import { getNeededStamps, buildTransaction, splitUtxosIntoStamps } from './utils/transaction'
-import Network from './utils/network/Network'
+import { getNeededStamps, buildTransaction, splitUtxosIntoStamps } from './src/transaction'
+import Network from './src/network/Network'
 import BCHJS from '@chris.troutner/bch-js'
 import config from './config.json'
 

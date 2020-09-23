@@ -11,7 +11,7 @@ export default class Network implements INetwork {
     })
 
     async fetchUTXOsForStampGeneration(cashAddress: string) {
-        const utxoResponse = await bchjs.Electrumx.utxo(cashAddress)
+        const utxoResponse = await Network.bchjs.Electrumx.utxo(cashAddress)
         const utxos = utxoResponse.utxos.filter(utxo => utxo.value > config.postageRate.weight * 2)
         if (utxos.length <= 0) {
             throw new Error('Insufficient Balance for Stamp Generation')
@@ -20,9 +20,9 @@ export default class Network implements INetwork {
     }
 
     async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, cashAddress: string) {
-        const utxoResponse = await bchjs.Electrumx.utxo(cashAddress)
+        const utxoResponse = await Network.bchjs.Electrumx.utxo(cashAddress)
         const txIds = utxoResponse.utxos.map(utxo => utxo.tx_hash).splice(0, numberOfStamps)
-        const areSlpUtxos = await bchjs.SLP.Utils.validateTxid(txIds)
+        const areSlpUtxos = await Network.bchjs.SLP.Utils.validateTxid(txIds)
         const filteredTxIds = areSlpUtxos.filter(tokenUtxo => tokenUtxo.valid === false).map(tokenUtxo => tokenUtxo.txid)
         const stamps = utxoResponse.utxos.filter(utxo => filteredTxIds.includes(utxo.tx_hash))
         if (stamps.length < numberOfStamps) {
@@ -36,7 +36,7 @@ export default class Network implements INetwork {
             const hash = Buffer.from(input.hash)
             return hash.reverse().toString('hex')
         })
-        const validateResponse = await bchjs.SLP.Utils.validateTxid(txIds)
+        const validateResponse = await Network.bchjs.SLP.Utils.validateTxid(txIds)
         validateResponse.forEach(response => {
             if (!response.valid) throw new Error(errorMessages.INVALID_PAYMENT)
         })
@@ -44,7 +44,7 @@ export default class Network implements INetwork {
 
      async broadcastTransaction(rawTransactionHex: any) {
         console.log('Broadcasting transaction...')
-        const transactionId = await bchjs.RawTransactions.sendRawTransaction(rawTransactionHex)
+        const transactionId = await Network.bchjs.RawTransactions.sendRawTransaction(rawTransactionHex)
         console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)
         return transactionId
     }

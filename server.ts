@@ -3,16 +3,13 @@ import cors = require('cors')
 import slpMiddleware from './src/slpMiddleware'
 import PaymentProtocol from 'bitcore-payment-protocol'
 import errorMessages from './src/errorMessages'
-import { Transaction } from 'bitcoincashjs-lib'
-import { getNeededStamps, buildTransaction, splitUtxosIntoStamps } from './src/transaction'
+import bitcoinCashJsLib from 'bitcoincashjs-lib'
+import Transaction from './src/transaction/Transaction'
 import Network from './src/network/Network'
 import BCHJS from '@chris.troutner/bch-js'
 import config from './config.json'
 
-const bchjs = new BCHJS({
-    restURL: config.network === 'mainnet' ? 'https://api.fullstack.cash/v3/' : 'https://tapi.fullstack.cash/v3/',
-    apiToken: config.apiKey,
-})
+const bchjs = new BCHJS()
 
 const app: express.Application = express()
 app.use(cors())
@@ -30,19 +27,19 @@ app.post('/postage', async function(req: any, res: express.Response) {
             return
         }
         const network = new Network()
-
+        const transaction = new Transaction()
         const rootSeed = await bchjs.Mnemonic.toSeed(config.mnemonic)
         const hdNode = bchjs.HDNode.fromSeed(rootSeed)
         const keyPair = bchjs.HDNode.toKeyPair(hdNode)
         const payment = PaymentProtocol.Payment.decode(req.raw)
-        const incomingTransaction = Transaction.fromHex(payment.transactions[0].toString('hex'))
+        const incomingTransaction = bitcoinCashJsLib.Transaction.fromHex(payment.transactions[0].toString('hex'))
         await network.validateSLPInputs(incomingTransaction.ins)
-        const neededStampsForTransaction = getNeededStamps(incomingTransaction)
+        const neededStampsForTransaction = transaction.getNeededStamps(incomingTransaction)
         const stamps = await network.fetchUTXOsForNumberOfStampsNeeded(
             neededStampsForTransaction,
             bchjs.HDNode.toCashAddress(hdNode),
         )
-        const stampedTransaction = buildTransaction(incomingTransaction, stamps, keyPair)
+        const stampedTransaction = transaction.buildTransaction(incomingTransaction, stamps, keyPair)
         const transactionId = await network.broadcastTransaction(stampedTransaction)
         const memo = `Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`
         payment.transactions[0] = stampedTransaction
@@ -67,8 +64,9 @@ app.listen(3000, async () => {
         console.log('Generating stamps...')
         try {
             const network = new Network()
+            const transaction = new Transaction()
             const utxosToSplit = await network.fetchUTXOsForStampGeneration(cashAddress)
-            const splitTransaction = splitUtxosIntoStamps(utxosToSplit, hdNode)
+            const splitTransaction = transaction.splitUtxosIntoStamps(utxosToSplit, hdNode)
             await network.broadcastTransaction(splitTransaction)
         } catch (e) {
             console.error(e.message || e.error || e)

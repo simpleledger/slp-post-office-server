@@ -56,12 +56,6 @@ module.exports = {
                 },
             },
             {
-                name: 'apiKey',
-                type: 'input',
-                default: '',
-                message: 'Enter your API key for fullstack.cash (optional): ',
-            },
-            {
                 name: 'weight',
                 type: 'number',
                 message: 'Enter the stamp weight (in satoshis):',

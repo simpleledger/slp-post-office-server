@@ -27,7 +27,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
             return
         }
         const network = new Network()
-        const transaction = new Transaction()
+        const transaction = new Transaction(config)
         const rootSeed = await bchjs.Mnemonic.toSeed(config.mnemonic)
         const hdNode = bchjs.HDNode.fromSeed(rootSeed)
         const keyPair = bchjs.HDNode.toKeyPair(hdNode)
@@ -64,7 +64,7 @@ app.listen(3000, async () => {
         console.log('Generating stamps...')
         try {
             const network = new Network()
-            const transaction = new Transaction()
+            const transaction = new Transaction(config)
             const utxosToSplit = await network.fetchUTXOsForStampGeneration(cashAddress)
             const splitTransaction = transaction.splitUtxosIntoStamps(utxosToSplit, hdNode)
             await network.broadcastTransaction(splitTransaction)

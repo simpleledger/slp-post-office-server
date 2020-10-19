@@ -1,5 +1,4 @@
 import errorMessages from '../errorMessages'
-import config from '../../config.json'
 import BCHJS from '@chris.troutner/bch-js'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
@@ -14,6 +13,11 @@ export default class Transaction implements ITransaction {
 
     static bchjs = new BCHJS()
 
+    config: any
+
+    constructor(config: any) {
+        this.config = config
+    }
     
     addStampsForTransactionAndSignInputs(transaction: any, keyPairFromPostOffice: any, stamps: any): any {
         const lastSlpInputVin = transaction.inputs.length - 1
@@ -29,7 +33,7 @@ export default class Transaction implements ITransaction {
                 keyPairFromPostOffice,
                 redeemScript,
                 0x01, // SIGHASH_ALL
-                config.postageRate.weight + Transaction.MIN_BYTES_INPUT,
+                this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT,
                 ECSignature.ECDSA,
             )
         }
@@ -49,7 +53,7 @@ export default class Transaction implements ITransaction {
             const addressFromOut = Transaction.bchjs.SLP.Address.toSLPAddress(
                 Transaction.bchjs.Address.fromOutputScript(transaction.outs[i].script),
             )
-            const postOfficeAddress = config.postageRate.address
+            const postOfficeAddress = this.config.postageRate.address
             if (postOfficeAddress === addressFromOut) tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i
         }
         if (tokenOutputPostage === 0) throw new Error(errorMessages.INSUFFICIENT_POSTAGE)
@@ -58,7 +62,7 @@ export default class Transaction implements ITransaction {
         // Check if postage is being paid accordingly
         const postagePaymentTokenId = transactionScript[Transaction.TOKEN_ID_INDEX]
         const stampDetails =
-            config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
+            this.config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
         const minimumStampsNeeded = transaction.outs.length - transaction.ins.length + 1
         if (stampDetails) {
             const stampRate = new BigNumber(stampDetails.rate).times(10 ** stampDetails.decimals)
@@ -77,18 +81,18 @@ export default class Transaction implements ITransaction {
     }
 
     splitUtxosIntoStamps(utxos: any, hdNode: any) {
-            const transactionBuilder = config.network === 'mainnet' ? new Transaction.bchjs.TransactionBuilder() : new Transaction.bchjs.TransactionBuilder('testnet')
+            const transactionBuilder = this.config.network === 'mainnet' ? new Transaction.bchjs.TransactionBuilder() : new Transaction.bchjs.TransactionBuilder('testnet')
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
 
-        const numberOfPossibleStamps = originalAmount / (config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
+        const numberOfPossibleStamps = originalAmount / (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
         const hypotheticalByteCount = Transaction.bchjs.BitcoinCash.getByteCount(
             { P2PKH: utxos.length },
             { P2PKH: numberOfPossibleStamps },
         )
         const satoshisPerByte = 1.4
         const hypotheticalTxFee = Math.floor(satoshisPerByte * hypotheticalByteCount)
-        let numberOfActualStamps = (originalAmount - hypotheticalTxFee) / (config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
+        let numberOfActualStamps = (originalAmount - hypotheticalTxFee) / (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
         if (numberOfActualStamps > 100) {
             numberOfActualStamps = 50
         }
@@ -98,10 +102,10 @@ export default class Transaction implements ITransaction {
         const outputAddress = Transaction.bchjs.HDNode.toCashAddress(hdNode)
         const byteCount = Transaction.bchjs.BitcoinCash.getByteCount({ P2PKH: utxos.length }, { P2PKH: numberOfActualStamps })
         const txFee = Math.floor(satoshisPerByte * byteCount)
-        const totalSatoshisToSend = (config.postageRate.weight + Transaction.MIN_BYTES_INPUT) * numberOfActualStamps
+        const totalSatoshisToSend = (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT) * numberOfActualStamps
 
         for (let i = 0; i < numberOfActualStamps; i++) {
-            transactionBuilder.addOutput(outputAddress, config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
+            transactionBuilder.addOutput(outputAddress, this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
         }
         const change = originalAmount - totalSatoshisToSend - txFee
         if (change > 1082) {
@@ -121,7 +125,7 @@ export default class Transaction implements ITransaction {
     }
 
     buildTransaction(incomingTransaction: any, stamps: any, keyPairFromPostOffice: any): Buffer {
-        const newTransaction = TransactionBuilder.fromTransaction(incomingTransaction, config.network)
+        const newTransaction = TransactionBuilder.fromTransaction(incomingTransaction, this.config.network)
         const newTransactionHex = this.addStampsForTransactionAndSignInputs(newTransaction, keyPairFromPostOffice, stamps)
             .build()
             .toHex()

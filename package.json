@@ -7,7 +7,7 @@
     "start": "ts-node-dev --respawn --transpileOnly ./server.ts",
     "start:production": "tsc && node ./build/server.js",
     "cli": "ts-node cli/index.ts",
-    "test": "tsc && nyc mocha",
+    "test": "tsc && nyc mocha -r ts-node/register ./test/*",
     "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },
   "repository": {

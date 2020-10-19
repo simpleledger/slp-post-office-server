@@ -7,7 +7,7 @@ const BigNumber = require('bignumber.js')
 
 clear()
 
-const run = async () => {
+const execute = async () => {
     console.log(chalk.green(figlet.textSync('SLP Post Office', { horizontalLayout: 'fitted' })))
     let isConfigFilePresent = true
     try {
@@ -15,8 +15,7 @@ const run = async () => {
     } catch (e) {
         isConfigFilePresent = false
     }
-    
-    
+
     let answersConfigFile
     if (isConfigFilePresent) {
         answersConfigFile = await inquirer.askConfigFileQuestions()
@@ -61,4 +60,4 @@ const run = async () => {
     }
 }
 
-run()
+execute()

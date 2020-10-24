@@ -26,7 +26,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
             res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE)
             return
         }
-        const network = new Network()
+        const network = new Network(config)
         const transaction = new Transaction(config)
         const rootSeed = await bchjs.Mnemonic.toSeed(config.mnemonic)
         const hdNode = bchjs.HDNode.fromSeed(rootSeed)
@@ -63,7 +63,7 @@ app.listen(3000, async () => {
     const generateStamps = async () => {
         console.log('Generating stamps...')
         try {
-            const network = new Network()
+            const network = new Network(config)
             const transaction = new Transaction(config)
             const utxosToSplit = await network.fetchUTXOsForStampGeneration(cashAddress)
             const splitTransaction = transaction.splitUtxosIntoStamps(utxosToSplit, hdNode)

@@ -5,13 +5,23 @@ import INetwork from './INetwork'
 
 export default class Network implements INetwork {
     static MIN_BYTES_INPUT = 181
-    static bchjs = new BCHJS({
-        restURL: config.network === 'mainnet' ? 'https://api.fullstack.cash/v3/' : 'https://tapi.fullstack.cash/v3/',
-        apiToken: config.apiKey,
-    })
+
+    bchjs: any
+    config: any
+
+    constructor(config: any) {
+        this.config = config
+        this.bchjs = new BCHJS({
+            restURL:
+                this.config.network === 'mainnet'
+                    ? 'https://api.fullstack.cash/v3/'
+                    : 'https://tapi.fullstack.cash/v3/',
+            apiToken: this.config.apiKey,
+        })
+    }
 
     async fetchUTXOsForStampGeneration(cashAddress: string) {
-        const utxoResponse = await Network.bchjs.Electrumx.utxo(cashAddress)
+        const utxoResponse = await this.bchjs.Electrumx.utxo(cashAddress)
         const utxos = utxoResponse.utxos.filter(utxo => utxo.value > config.postageRate.weight * 2)
         if (utxos.length <= 0) {
             throw new Error('Insufficient Balance for Stamp Generation')
@@ -20,9 +30,9 @@ export default class Network implements INetwork {
     }
 
     async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, cashAddress: string) {
-        const utxoResponse = await Network.bchjs.Electrumx.utxo(cashAddress)
+        const utxoResponse = await this.bchjs.Electrumx.utxo(cashAddress)
         const txIds = utxoResponse.utxos.map(utxo => utxo.tx_hash).splice(0, numberOfStamps)
-        const areSlpUtxos = await Network.bchjs.SLP.Utils.validateTxid(txIds)
+        const areSlpUtxos = await this.bchjs.SLP.Utils.validateTxid(txIds)
         const filteredTxIds = areSlpUtxos.filter(tokenUtxo => tokenUtxo.valid === false).map(tokenUtxo => tokenUtxo.txid)
         const stamps = utxoResponse.utxos.filter(utxo => filteredTxIds.includes(utxo.tx_hash))
         if (stamps.length < numberOfStamps) {
@@ -36,7 +46,7 @@ export default class Network implements INetwork {
             const hash = Buffer.from(input.hash)
             return hash.reverse().toString('hex')
         })
-        const validateResponse = await Network.bchjs.SLP.Utils.validateTxid(txIds)
+        const validateResponse = await this.bchjs.SLP.Utils.validateTxid(txIds)
         validateResponse.forEach(response => {
             if (!response.valid) throw new Error(errorMessages.INVALID_PAYMENT)
         })
@@ -44,7 +54,7 @@ export default class Network implements INetwork {
 
      async broadcastTransaction(rawTransactionHex: any) {
         console.log('Broadcasting transaction...')
-        const transactionId = await Network.bchjs.RawTransactions.sendRawTransaction(rawTransactionHex)
+        const transactionId = await this.bchjs.RawTransactions.sendRawTransaction(rawTransactionHex)
         console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)
         return transactionId
     }

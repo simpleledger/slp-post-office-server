@@ -43,6 +43,7 @@
     "electrum-cash": "^2.0.2",
     "express": "^4.17.1",
     "figlet": "^1.5.0",
+    "grpc-bchrpc-node": "^0.11.3",
     "inquirer": "^7.3.3",
     "lodash": "^4.17.19",
     "minimist": "^1.2.5",

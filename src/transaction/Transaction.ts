@@ -18,13 +18,13 @@ export default class Transaction implements ITransaction {
     constructor(config: any) {
         this.config = config
     }
-    
+
     addStampsForTransactionAndSignInputs(transaction: any, keyPairFromPostOffice: any, stamps: any): any {
         const lastSlpInputVin = transaction.inputs.length - 1
         for (let i = 0; i < stamps.length; i++) {
             transaction.addInput(stamps[i].tx_hash, stamps[i].tx_pos)
         }
-    
+
         for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
             let redeemScript
             console.log(`Signing...`, i)
@@ -37,16 +37,18 @@ export default class Transaction implements ITransaction {
                 ECSignature.ECDSA,
             )
         }
-    
+
         return transaction
     }
 
     getNeededStamps(transaction: any): number {
         BigNumber.set({ ROUNDING_MODE: BigNumber.ROUND_UP })
-        const transactionScript = Transaction.bchjs.Script.toASM(transaction.outs[Transaction.SLP_OP_RETURN_VOUT].script).split(' ')
+        const transactionScript = Transaction.bchjs.Script.toASM(
+            transaction.outs[Transaction.SLP_OP_RETURN_VOUT].script,
+        ).split(' ')
         if (transactionScript[Transaction.LOKAD_ID_INDEX] !== Transaction.LOKAD_ID_INDEX_VALUE)
             throw new Error(errorMessages.INVALID_SLP_OP_RETURN)
-    
+
         let neededStamps = 0
         let tokenOutputPostage = 0
         for (let i = 1; i < transaction.outs.length; i++) {
@@ -57,7 +59,7 @@ export default class Transaction implements ITransaction {
             if (postOfficeAddress === addressFromOut) tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i
         }
         if (tokenOutputPostage === 0) throw new Error(errorMessages.INSUFFICIENT_POSTAGE)
-    
+
         // Check if token being spent is the same as described in the postage rate for the stamp
         // Check if postage is being paid accordingly
         const postagePaymentTokenId = transactionScript[Transaction.TOKEN_ID_INDEX]
@@ -76,12 +78,15 @@ export default class Transaction implements ITransaction {
         } else {
             throw new Error(errorMessages.UNSUPPORTED_SLP_TOKEN)
         }
-    
+
         return neededStamps
     }
 
-    splitUtxosIntoStamps(utxos: any, hdNode: any) {
-            const transactionBuilder = this.config.network === 'mainnet' ? new Transaction.bchjs.TransactionBuilder() : new Transaction.bchjs.TransactionBuilder('testnet')
+    splitUtxosIntoStamps(utxos: any, hdNode: any): Buffer {
+        const transactionBuilder =
+            this.config.network === 'mainnet'
+                ? new Transaction.bchjs.TransactionBuilder()
+                : new Transaction.bchjs.TransactionBuilder('testnet')
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
 
@@ -92,7 +97,8 @@ export default class Transaction implements ITransaction {
         )
         const satoshisPerByte = 1.4
         const hypotheticalTxFee = Math.floor(satoshisPerByte * hypotheticalByteCount)
-        let numberOfActualStamps = (originalAmount - hypotheticalTxFee) / (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
+        let numberOfActualStamps =
+            (originalAmount - hypotheticalTxFee) / (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
         if (numberOfActualStamps > 100) {
             numberOfActualStamps = 50
         }
@@ -100,9 +106,13 @@ export default class Transaction implements ITransaction {
         utxos.forEach(utxo => transactionBuilder.addInput(utxo.tx_hash, utxo.tx_pos))
         const keyPair = Transaction.bchjs.HDNode.toKeyPair(hdNode)
         const outputAddress = Transaction.bchjs.HDNode.toCashAddress(hdNode)
-        const byteCount = Transaction.bchjs.BitcoinCash.getByteCount({ P2PKH: utxos.length }, { P2PKH: numberOfActualStamps })
+        const byteCount = Transaction.bchjs.BitcoinCash.getByteCount(
+            { P2PKH: utxos.length },
+            { P2PKH: numberOfActualStamps },
+        )
         const txFee = Math.floor(satoshisPerByte * byteCount)
-        const totalSatoshisToSend = (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT) * numberOfActualStamps
+        const totalSatoshisToSend =
+            (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT) * numberOfActualStamps
 
         for (let i = 0; i < numberOfActualStamps; i++) {
             transactionBuilder.addOutput(outputAddress, this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
@@ -119,17 +129,16 @@ export default class Transaction implements ITransaction {
         }
 
         const tx = transactionBuilder.build()
-        const hex = tx.toHex()
+        const buf = tx.toBuffer()
 
-        return hex
+        return buf
     }
 
     buildTransaction(incomingTransaction: any, stamps: any, keyPairFromPostOffice: any): Buffer {
         const newTransaction = TransactionBuilder.fromTransaction(incomingTransaction, this.config.network)
-        const newTransactionHex = this.addStampsForTransactionAndSignInputs(newTransaction, keyPairFromPostOffice, stamps)
+        const txBuf = this.addStampsForTransactionAndSignInputs(newTransaction, keyPairFromPostOffice, stamps)
             .build()
-            .toHex()
-        return newTransactionHex
+            .toBuffer()
+        return txBuf
     }
-    
 }

@@ -1,6 +1,8 @@
+import INetUtxo from './INetUtxo'
+
 export default interface INetwork {
-    fetchUTXOsForStampGeneration: (cashAddress: string) => any
-    fetchUTXOsForNumberOfStampsNeeded: (numberOfStamps: number, cashAddress: string) => any
-    validateSLPInputs: (inputs: any) => any
-    broadcastTransaction: (rawTransactionHex: string) => any
+    fetchUTXOsForStampGeneration: (cashAddress: string) => Promise<INetUtxo[]>
+    fetchUTXOsForNumberOfStampsNeeded: (numberOfStamps: number, cashAddress: string) => Promise<INetUtxo[]>
+    validateSLPInputs: (inputs: any) => Promise<void>
+    broadcastTransaction: (rawTransaction: Buffer) => Promise<string>
 }

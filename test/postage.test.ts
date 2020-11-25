@@ -5,7 +5,9 @@ import * as sinon from 'sinon'
 import PaymentProtocol from 'bitcore-payment-protocol'
 
 import Postage from '../src/postage/Postage'
+import INetUtxo from '../src/network/INetUtxo'
 import BITBOXNetwork from '../src/network/BITBOXNetwork'
+import BCHDNetwork from '../src/network/BCHDNetwork'
 import mockConfig from './mocks/config.mock.json'
 import * as mockData from './mocks/postage.mocks'
 
@@ -43,7 +45,7 @@ describe('#Postage.ts', () => {
             //     | Promise<any>
             //     | sinon.SinonStub<[number, string], Promise<any>>
 
-            const networkMock = sandbox.createStubInstance(BITBOXNetwork, {
+            const bitboxNetworkMock = sandbox.createStubInstance(BITBOXNetwork, {
                 validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
@@ -52,7 +54,17 @@ describe('#Postage.ts', () => {
                     | Promise<any>
                     | sinon.SinonStub<[number, string], Promise<any>>,
             })
-            postage.network = networkMock
+
+            const bchdNetworkMock = sandbox.createStubInstance(BCHDNetwork, {
+                validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
+                broadcastTransaction: sandbox.stub().resolves(transactionId) as
+                    | Promise<any>
+                    | sinon.SinonStub<[any], Promise<any>>,
+                fetchUTXOsForNumberOfStampsNeeded: sandbox.stub().resolves(mockData.stampsMock) as
+                    | Promise<any>
+                    | sinon.SinonStub<[number, string], Promise<any>>,
+            })
+            postage.network = bchdNetworkMock
 
             const rawIncomingPayment = Buffer.from(
                 '12a8020100000001ca6193753fe1e19d89c8785b89bd7bfd0f37efbd0037a27e2126e' +

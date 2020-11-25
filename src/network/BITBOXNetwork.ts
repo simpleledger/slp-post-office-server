@@ -2,6 +2,7 @@ import errorMessages from '../errorMessages'
 import BCHJS from '@chris.troutner/bch-js'
 import config from '../../config.json'
 import INetwork from './INetwork'
+import INetUtxo from './INetUtxo'
 
 export default class BITBOXNetwork implements INetwork {
     static MIN_BYTES_INPUT = 181
@@ -20,7 +21,7 @@ export default class BITBOXNetwork implements INetwork {
         })
     }
 
-    async fetchUTXOsForStampGeneration(cashAddress: string) {
+    async fetchUTXOsForStampGeneration(cashAddress: string): Promise<INetUtxo[]> {
         const utxoResponse = await this.bchjs.Electrumx.utxo(cashAddress)
         const utxos = utxoResponse.utxos.filter(utxo => utxo.value > config.postageRate.weight * 2)
         if (utxos.length <= 0) {
@@ -29,7 +30,7 @@ export default class BITBOXNetwork implements INetwork {
         return utxos
     }
 
-    async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, cashAddress: string) {
+    async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, cashAddress: string): Promise<INetUtxo[]> {
         const utxoResponse = await this.bchjs.Electrumx.utxo(cashAddress)
         const txIds = utxoResponse.utxos.map(utxo => utxo.tx_hash).splice(0, numberOfStamps)
         const areSlpUtxos = await this.bchjs.SLP.Utils.validateTxid(txIds)
@@ -43,7 +44,7 @@ export default class BITBOXNetwork implements INetwork {
         return stamps.slice(0, numberOfStamps)
     }
 
-    async validateSLPInputs(inputs: any) {
+    async validateSLPInputs(inputs: any): Promise<void> {
         const txIds = inputs.map(input => {
             const hash = Buffer.from(input.hash)
             return hash.reverse().toString('hex')
@@ -54,9 +55,9 @@ export default class BITBOXNetwork implements INetwork {
         })
     }
 
-    async broadcastTransaction(rawTransactionHex: any) {
+    async broadcastTransaction(rawTransaction: Buffer): Promise<string> {
         console.log('Broadcasting transaction...')
-        const transactionId = await this.bchjs.RawTransactions.sendRawTransaction(rawTransactionHex)
+        const transactionId = await this.bchjs.RawTransactions.sendRawTransaction(rawTransaction.toString('hex'))
         console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)
         return transactionId
     }

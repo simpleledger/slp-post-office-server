@@ -3,13 +3,14 @@ import bitcoinCashJsLib from 'bitcoincashjs-lib'
 import BCHJS from '@chris.troutner/bch-js'
 
 import Transaction from './../transaction/Transaction'
+import INetwork from './../network/INetwork'
 import BITBOXNetwork from './../network/BITBOXNetwork'
 import IPostage from './IPostage'
 
 export default class Postage implements IPostage {
     bchjs: any
     config: any
-    network: BITBOXNetwork
+    network: INetwork
     transaction: Transaction
     hdNode: any
 
@@ -34,7 +35,8 @@ export default class Postage implements IPostage {
         const payment = PaymentProtocol.Payment.decode(rawIncomingPayment)
         const incomingTransaction = bitcoinCashJsLib.Transaction.fromHex(payment.transactions[0].toString('hex'))
 
-        await this.network.validateSLPInputs(incomingTransaction.ins)
+        // TODO this doesn't do what is expected
+        // await this.network.validateSLPInputs(incomingTransaction.ins)
 
         const neededStampsForTransaction = this.transaction.getNeededStamps(incomingTransaction)
         const stamps = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTransaction, cashAddress)

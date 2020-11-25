@@ -3,6 +3,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 
 import BITBOXNetwork from '../src/network/BITBOXNetwork'
+import BCHDNetwork from '../src/network/BCHDNetwork'
 import errorMessages from '../src/errorMessages'
 import * as mockData from './mocks/network.mocks'
 import mockConfig from './mocks/config.mock.json'

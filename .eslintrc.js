@@ -12,7 +12,8 @@ module.exports = {
     sourceType: "module" 
   },
   rules: {
-     "@typescript-eslint/no-var-requires": OFF,
-    "@typescript-eslint/no-explicit-any": OFF
+    "@typescript-eslint/no-var-requires": OFF,
+    "@typescript-eslint/no-explicit-any": OFF,
+    "@typescript-eslint/interface-name-prefix" : OFF,
   }
 };

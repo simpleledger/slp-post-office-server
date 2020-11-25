@@ -5,7 +5,7 @@ import * as sinon from 'sinon'
 import PaymentProtocol from 'bitcore-payment-protocol'
 
 import Postage from '../src/postage/Postage'
-import Network from '../src/network/Network'
+import BITBOXNetwork from '../src/network/BITBOXNetwork'
 import mockConfig from './mocks/config.mock.json'
 import * as mockData from './mocks/postage.mocks'
 
@@ -43,7 +43,7 @@ describe('#Postage.ts', () => {
             //     | Promise<any>
             //     | sinon.SinonStub<[number, string], Promise<any>>
 
-            const networkMock = sandbox.createStubInstance(Network, {
+            const networkMock = sandbox.createStubInstance(BITBOXNetwork, {
                 validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
@@ -81,7 +81,7 @@ describe('#Postage.ts', () => {
         it('should attempt to generate and broadcast new stamps', async () => {
             const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
 
-            const networkMock = sandbox.createStubInstance(Network, {
+            const networkMock = sandbox.createStubInstance(BITBOXNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
                     | sinon.SinonStub<[any], Promise<any>>,
@@ -100,7 +100,7 @@ describe('#Postage.ts', () => {
         it('should not broadcast anything if server had no balance', async () => {
             const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
 
-            const networkMock = sandbox.createStubInstance(Network, {
+            const networkMock = sandbox.createStubInstance(BITBOXNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
                     | sinon.SinonStub<[any], Promise<any>>,

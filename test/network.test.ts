@@ -2,7 +2,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 
-import Network from '../src/network/Network'
+import BITBOXNetwork from '../src/network/BITBOXNetwork'
 import errorMessages from '../src/errorMessages'
 import * as mockData from './mocks/network.mocks'
 import mockConfig from './mocks/config.mock.json'
@@ -12,7 +12,7 @@ describe('#Transaction.ts', () => {
     let sandbox: sinon.SinonSandbox
 
     beforeEach(() => {
-        network = new Network(mockConfig)
+        network = new BITBOXNetwork(mockConfig)
         sandbox = sinon.createSandbox()
     })
 

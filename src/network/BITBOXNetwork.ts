@@ -3,7 +3,7 @@ import BCHJS from '@chris.troutner/bch-js'
 import config from '../../config.json'
 import INetwork from './INetwork'
 
-export default class Network implements INetwork {
+export default class BITBOXNetwork implements INetwork {
     static MIN_BYTES_INPUT = 181
 
     bchjs: any
@@ -33,7 +33,9 @@ export default class Network implements INetwork {
         const utxoResponse = await this.bchjs.Electrumx.utxo(cashAddress)
         const txIds = utxoResponse.utxos.map(utxo => utxo.tx_hash).splice(0, numberOfStamps)
         const areSlpUtxos = await this.bchjs.SLP.Utils.validateTxid(txIds)
-        const filteredTxIds = areSlpUtxos.filter(tokenUtxo => tokenUtxo.valid === false).map(tokenUtxo => tokenUtxo.txid)
+        const filteredTxIds = areSlpUtxos
+            .filter(tokenUtxo => tokenUtxo.valid === false)
+            .map(tokenUtxo => tokenUtxo.txid)
         const stamps = utxoResponse.utxos.filter(utxo => filteredTxIds.includes(utxo.tx_hash))
         if (stamps.length < numberOfStamps) {
             throw new Error(errorMessages.UNAVAILABLE_STAMPS)
@@ -41,7 +43,7 @@ export default class Network implements INetwork {
         return stamps.slice(0, numberOfStamps)
     }
 
-     async validateSLPInputs(inputs: any) {
+    async validateSLPInputs(inputs: any) {
         const txIds = inputs.map(input => {
             const hash = Buffer.from(input.hash)
             return hash.reverse().toString('hex')
@@ -50,9 +52,9 @@ export default class Network implements INetwork {
         validateResponse.forEach(response => {
             if (!response.valid) throw new Error(errorMessages.INVALID_PAYMENT)
         })
-     }
+    }
 
-     async broadcastTransaction(rawTransactionHex: any) {
+    async broadcastTransaction(rawTransactionHex: any) {
         console.log('Broadcasting transaction...')
         const transactionId = await this.bchjs.RawTransactions.sendRawTransaction(rawTransactionHex)
         console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)

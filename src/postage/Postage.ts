@@ -3,20 +3,20 @@ import bitcoinCashJsLib from 'bitcoincashjs-lib'
 import BCHJS from '@chris.troutner/bch-js'
 
 import Transaction from './../transaction/Transaction'
-import Network from './../network/Network'
+import BITBOXNetwork from './../network/BITBOXNetwork'
 import IPostage from './IPostage'
 
 export default class Postage implements IPostage {
     bchjs: any
     config: any
-    network: Network
+    network: BITBOXNetwork
     transaction: Transaction
     hdNode: any
 
     constructor(config: any) {
         this.config = config
         this.bchjs = new BCHJS()
-        this.network = new Network(this.config)
+        this.network = new BITBOXNetwork(this.config)
         this.transaction = new Transaction(this.config)
     }
 

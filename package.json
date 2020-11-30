@@ -32,6 +32,7 @@
     "@chris.troutner/bch-js": "^3.3.5",
     "@types/express": "^4.17.2",
     "@types/mocha": "^8.0.3",
+    "async-mutex": "^0.2.6",
     "bignumber.js": "^9.0.0",
     "bitcoincashjs-lib": "Bitcoin-com/bitcoincashjs-lib#v4.0.1",
     "bitcore-payment-protocol": "^8.1.1",

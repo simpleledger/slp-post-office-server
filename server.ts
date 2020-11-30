@@ -1,5 +1,6 @@
 import express = require('express')
 import cors = require('cors')
+import { Mutex } from 'async-mutex'
 import slpMiddleware from './src/slpMiddleware'
 import errorMessages from './src/errorMessages'
 import Postage from './src/postage/Postage'
@@ -8,6 +9,7 @@ import config from './config.json'
 const app: express.Application = express()
 app.use(cors())
 app.use(slpMiddleware)
+const mutex = new Mutex()
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
     const postage = new Postage(config)
@@ -20,9 +22,14 @@ app.post('/postage', async function(req: any, res: express.Response) {
             res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE)
             return
         }
-        const postage = new Postage(config)
-        const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw)
-        res.status(200).send(serializedPaymentAck)
+        const release = await mutex.acquire()
+        try {
+            const postage = new Postage(config)
+            const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw)
+            res.status(200).send(serializedPaymentAck)
+        } finally {
+            release()
+        }
     } catch (e) {
         console.error(e)
         if (Object.values(errorMessages).includes(e.message)) {

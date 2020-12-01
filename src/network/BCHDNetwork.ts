@@ -1,6 +1,5 @@
 import errorMessages from '../errorMessages'
 import { GrpcClient } from 'grpc-bchrpc-node'
-import config from '../../config.json'
 import INetwork from './INetwork'
 import INetUtxo from './INetUtxo'
 
@@ -12,7 +11,7 @@ export default class BCHDNetwork implements INetwork {
 
     constructor(config: any) {
         this.config = config
-        this.bchd = new GrpcClient({ url: 'bchd.ny1.simpleledger.io' })
+        this.bchd = new GrpcClient({ url: this.config.bchd.server })
     }
 
     async fetchUTXOsForStampGeneration(cashAddress: string): Promise<INetUtxo[]> {
@@ -34,7 +33,7 @@ export default class BCHDNetwork implements INetwork {
                 value: u.getValue() / 10 ** 8,
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
             }))
-            .filter(u => u.value > config.postageRate.weight * 2)
+            .filter(u => u.value > this.config.postage.postageRate.weight * 2)
 
         console.log(utxos)
 

@@ -14,7 +14,17 @@ export default class BCHDNetwork implements INetwork {
         this.bchd = new GrpcClient({ url: this.config.bchd.server })
     }
 
+    private async checkServerSLPIndexingEnabled(): Promise<void> {
+        const res = await this.bchd.getBlockchainInfo()
+
+        if (res.getSlpIndex() == false) {
+            throw new Error('The BCHD server does not have SLP support enabled')
+        }
+    }
+
     async fetchUTXOsForStampGeneration(cashAddress: string): Promise<INetUtxo[]> {
+        await this.checkServerSLPIndexingEnabled()
+
         const res = await this.bchd.getAddressUtxos({
             address: cashAddress,
             includeMempool: false,
@@ -22,6 +32,8 @@ export default class BCHDNetwork implements INetwork {
         })
 
         const utxos: INetUtxo[] = res
+            .getOutputsList()
+            .filter(u => u.getSlpToken() == undefined) // get only non-slp utxos
             .map(u => ({
                 tx_hash: Buffer.from(
                     u
@@ -44,6 +56,8 @@ export default class BCHDNetwork implements INetwork {
     }
 
     async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, cashAddress: string): Promise<INetUtxo[]> {
+        await this.checkServerSLPIndexingEnabled()
+
         const res = await this.bchd.getAddressUtxos({
             address: cashAddress,
             includeMempool: false,
@@ -51,7 +65,8 @@ export default class BCHDNetwork implements INetwork {
         })
 
         const utxos: INetUtxo[] = res
-            // .filter() // TODO get only non-slp utxos with protobuf method
+            .getOutputsList()
+            .filter(u => u.getSlpToken() == undefined) // get only non-slp utxos
             .map(u => ({
                 tx_hash: Buffer.from(
                     u

@@ -1,3 +1,3 @@
 export default interface IApiWrapper {
-    getPrice: () => number
+    getPrice: () => Promise<number>
 }

@@ -1,8 +1,7 @@
-import config from '../../config.json'
-import fs from 'fs'
 import IApiWrapper from './ApiWrapper/IApiWrapper'
 
 export default class TokenPriceFeeder {
+    private config: any
     private tickInSeconds: number
     private tokenId: string
     private apiWrapper: IApiWrapper
@@ -13,7 +12,8 @@ export default class TokenPriceFeeder {
         return price * minerFeeInUSD
     }
 
-    public constructor(tickInSeconds: number,tokenId: string, apiWrapper: IApiWrapper, applyCustomRule: (price: number) => number) {
+    public constructor(config: any, tickInSeconds: number,tokenId: string, apiWrapper: IApiWrapper, applyCustomRule: (price: number) => number) {
+        this.config = config
         this.tickInSeconds = tickInSeconds
         this.tokenId = tokenId
         this.apiWrapper = apiWrapper
@@ -23,7 +23,7 @@ export default class TokenPriceFeeder {
     public async run() {
         setInterval(async () => {
             const priceData = await this.apiWrapper.getPrice()
-            const currentStamps = config.postageRate.stamps
+            const currentStamps = this.config.postageRate.stamps
             currentStamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {
                     let price: number

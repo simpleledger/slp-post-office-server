@@ -4,7 +4,7 @@ import BCHJS from '@chris.troutner/bch-js'
 
 import Transaction from './../transaction/Transaction'
 import INetwork from './../network/INetwork'
-import BITBOXNetwork from './../network/BITBOXNetwork'
+import BCHDNetwork from './../network/BCHDNetwork'
 import IPostage from './IPostage'
 
 export default class Postage implements IPostage {
@@ -17,16 +17,16 @@ export default class Postage implements IPostage {
     constructor(config: any) {
         this.config = config
         this.bchjs = new BCHJS()
-        this.network = new BITBOXNetwork(this.config)
-        this.transaction = new Transaction(this.config)
+        this.network = new BCHDNetwork(this.config)
+        this.transaction = new Transaction(this.config.postage)
     }
 
     getRates(): any {
-        return this.config.postageRate
+        return this.config.postage.postageRate
     }
 
     async addStampsToTxAndBroadcast(rawIncomingPayment: Buffer): Promise<any> {
-        const rootSeed = await this.bchjs.Mnemonic.toSeed(this.config.mnemonic)
+        const rootSeed = await this.bchjs.Mnemonic.toSeed(this.config.postage.mnemonic)
         const hdNode = this.bchjs.HDNode.fromSeed(rootSeed)
         const keyPair = this.bchjs.HDNode.toKeyPair(hdNode)
         const cashAddress = this.bchjs.HDNode.toCashAddress(hdNode)
@@ -51,7 +51,7 @@ export default class Postage implements IPostage {
     }
 
     async generateStamps(): Promise<void> {
-        const rootSeed = await this.bchjs.Mnemonic.toSeed(this.config.mnemonic)
+        const rootSeed = await this.bchjs.Mnemonic.toSeed(this.config.postage.mnemonic)
         const hdNode = this.bchjs.HDNode.fromSeed(rootSeed)
         const cashAddress = this.bchjs.HDNode.toCashAddress(hdNode)
 

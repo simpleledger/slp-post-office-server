@@ -25,7 +25,7 @@ config.priceFeeders.forEach(priceFeeder => {
 
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
-    const postage = new Postage(config.postage)
+    const postage = new Postage(config)
     res.send(postage.getRates())
 })
 
@@ -37,7 +37,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
         }
         const release = await mutex.acquire()
         try {
-            const postage = new Postage(config.postage)
+            const postage = new Postage(config)
             const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw)
             res.status(200).send(serializedPaymentAck)
         } finally {
@@ -54,9 +54,9 @@ app.post('/postage', async function(req: any, res: express.Response) {
 })
 
 app.listen(config.port, async () => {
-    const postage = new Postage(config.postage)
+    const postage = new Postage(config)
 
-    const rootSeed = await postage.bchjs.Mnemonic.toSeed(postage.config.mnemonic)
+    const rootSeed = await postage.bchjs.Mnemonic.toSeed(postage.config.postage.mnemonic)
     const hdNode = postage.bchjs.HDNode.fromSeed(rootSeed)
     const cashAddress = postage.bchjs.HDNode.toCashAddress(hdNode)
     console.log(`Send stamps to: ${cashAddress}`)

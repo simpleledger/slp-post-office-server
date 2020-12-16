@@ -4,7 +4,7 @@ import { Mutex } from 'async-mutex'
 import slpMiddleware from './src/slpMiddleware'
 import errorMessages from './src/errorMessages'
 import Postage from './src/postage/Postage'
-import config from './config.json'
+import { config } from './serverConfig'
 
 const app: express.Application = express()
 app.use(cors())
@@ -12,7 +12,7 @@ app.use(slpMiddleware)
 const mutex = new Mutex()
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
-    const postage = new Postage(config)
+    const postage = new Postage(config.postage)
     res.send(postage.getRates())
 })
 
@@ -24,7 +24,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
         }
         const release = await mutex.acquire()
         try {
-            const postage = new Postage(config)
+            const postage = new Postage(config.postage)
             const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw)
             res.status(200).send(serializedPaymentAck)
         } finally {
@@ -40,8 +40,8 @@ app.post('/postage', async function(req: any, res: express.Response) {
     }
 })
 
-app.listen(3000, async () => {
-    const postage = new Postage(config)
+app.listen(config.port, async () => {
+    const postage = new Postage(config.postage)
 
     const rootSeed = await postage.bchjs.Mnemonic.toSeed(postage.config.mnemonic)
     const hdNode = postage.bchjs.HDNode.fromSeed(rootSeed)
@@ -52,5 +52,5 @@ app.listen(3000, async () => {
     setInterval(postage.generateStamps, 1000 * 60 * stampGenerationIntervalInMinutes)
     postage.generateStamps()
 
-    console.log('Post Office listening on port 3000!')
+    console.log(`Post Office listening on port ${config.port}!`)
 })

@@ -42,7 +42,7 @@ export default class BCHDNetwork implements INetwork {
                         .reverse(),
                 ).toString('hex'),
                 tx_pos: u.getOutpoint()!.getIndex(),
-                value: u.getValue() / 10 ** 8,
+                value: u.getValue(),
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
             }))
             .filter(u => u.value > this.config.postage.postageRate.weight * 2)
@@ -75,7 +75,7 @@ export default class BCHDNetwork implements INetwork {
                         .reverse(),
                 ).toString('hex'),
                 tx_pos: u.getOutpoint()!.getIndex(),
-                value: u.getValue() / 10 ** 8,
+                value: u.getValue(),
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
             }))
 

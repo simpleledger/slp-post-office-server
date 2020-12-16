@@ -4,12 +4,25 @@ import { Mutex } from 'async-mutex'
 import slpMiddleware from './src/slpMiddleware'
 import errorMessages from './src/errorMessages'
 import Postage from './src/postage/Postage'
+import TokenPriceFeeder from './src/tokenPriceFeeder/TokenPriceFeeder'
 import { config } from './serverConfig'
 
 const app: express.Application = express()
 app.use(cors())
 app.use(slpMiddleware)
 const mutex = new Mutex()
+
+config.priceFeeders.forEach(priceFeeder => {
+    const tokenPriceFeeder = new TokenPriceFeeder(
+        config.postage,
+        100,
+        priceFeeder.tokenId,
+        new priceFeeder.feederClass(),
+        priceFeeder.useInitialStampRateAsMin
+    )
+    tokenPriceFeeder.run()
+})
+
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
     const postage = new Postage(config.postage)

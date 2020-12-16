@@ -27,7 +27,7 @@ export default class BCHDNetwork implements INetwork {
 
         const res = await this.bchd.getAddressUtxos({
             address: cashAddress,
-            includeMempool: false,
+            includeMempool: true,
             includeTokenMetadata: true,
         })
 
@@ -60,7 +60,7 @@ export default class BCHDNetwork implements INetwork {
 
         const res = await this.bchd.getAddressUtxos({
             address: cashAddress,
-            includeMempool: false,
+            includeMempool: true,
             includeTokenMetadata: true,
         })
 

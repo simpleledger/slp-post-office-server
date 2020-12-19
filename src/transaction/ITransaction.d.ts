@@ -3,8 +3,8 @@ interface ITransactionConstructor {
 }
 
 export default interface ITransaction {
-    addStampsForTransactionAndSignInputs: (transaction: any, keyPairFromPostOffice: any, stamps: any) => any;
+    addStampsForTransactionAndSignInputs: (transaction: any, hdNode: any, stamps: any) => any;
     getNeededStamps: (transaction: any) => number;
     splitUtxosIntoStamps: (utxos: any, hdNode: any) => any;
-    buildTransaction: (incomingTransaction: any, stamps: any, keyPairFromPostOffice: any) => Buffer;
+    buildTransaction: (incomingTransaction: any, stamps: any, hdNode: any) => Buffer;
 }

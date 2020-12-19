@@ -3,4 +3,5 @@ export default interface INetUtxo {
     tx_pos: number
     value: number
     height: number
+    script: string
 }

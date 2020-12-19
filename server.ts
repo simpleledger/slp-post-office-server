@@ -55,10 +55,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
 
 app.listen(config.port, async () => {
     const postage = new Postage(config)
-
-    const rootSeed = await postage.bchjs.Mnemonic.toSeed(postage.config.postage.mnemonic)
-    const hdNode = postage.bchjs.HDNode.fromSeed(rootSeed)
-    const cashAddress = postage.bchjs.HDNode.toCashAddress(hdNode)
+    const cashAddress = postage.hdNode.privateKey.toAddress().toString()
     console.log(`Send stamps to: ${cashAddress}`)
 
     const stampGenerationIntervalInMinutes = 30

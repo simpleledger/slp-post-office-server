@@ -44,6 +44,7 @@ export default class BCHDNetwork implements INetwork {
                 tx_pos: u.getOutpoint()!.getIndex(),
                 value: u.getValue(),
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
+                script: Buffer.from(u.getPubkeyScript_asU8()).toString('hex'),
             }))
             .filter(u => u.value > this.config.postage.postageRate.weight * 2)
 
@@ -77,6 +78,7 @@ export default class BCHDNetwork implements INetwork {
                 tx_pos: u.getOutpoint()!.getIndex(),
                 value: u.getValue(),
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
+                script: Buffer.from(u.getPubkeyScript_asU8()).toString('hex'),
             }))
 
         if (utxos.length < numberOfStamps) {

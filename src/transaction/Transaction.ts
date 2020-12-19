@@ -1,5 +1,6 @@
 import errorMessages from '../errorMessages'
 import BCHJS from '@chris.troutner/bch-js'
+import bitcore from 'bitcore-lib-cash'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
 const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')
@@ -19,23 +20,68 @@ export default class Transaction implements ITransaction {
         this.config = config
     }
 
-    addStampsForTransactionAndSignInputs(transaction: any, keyPairFromPostOffice: any, stamps: any): any {
+    addStampsForTransactionAndSignInputs(transaction: any, hdNode: any, stamps: any): any {
+
+        // the transaction inputs don't contain all the data needed so add them again
+        // const transactionInputs = transaction.inputs
+        // transaction.inputs = []
+        // transactionInputs.forEach((input, index) => {
+        //     let pubKeyHashOutput = new bitcore.Script.buildPublicKeyOut(
+        //         new bitcore.PublicKey(input.script.chunks[1].buf.toString('hex'))
+        //     )
+        //     transaction.addInput(new bitcore.Transaction.Input.PublicKeyHash({
+        //         outout: new bitcore.Transaction.Output({
+        //             script: pubKeyHashOutput.toBuffer(),
+        //             satoshis: 546, // TODO
+        //         }),
+        //         outputIndex: input.outputIndex,
+        //         prevTxId: input.prevTxId,
+        //         script: input.script.toBuffer(),
+        //         sequenceNumber: input.sequenceNumber
+        //     }))
+        // });
+        // let signedInputs = transaction.inputs;
+        // transaction.inputs = [];
+
+        // signedInputs.forEach((input, index) => {
+        //     let pubKeyHashOutput = new bitcore.Script.buildPublicKeyOut(new bitcore.PublicKey(input.script.chunks[1].buf.toString("hex")));
+        //     transaction.addInput(
+        //         new bitcore.Transaction.Input.PublicKeyHash(
+        //             {
+        //                 output: new bitcore.Transaction.Output({
+        //                     script: pubKeyHashOutput.toBuffer(),
+        //                     satoshis: 546,  // We assume this for now, but should look it up in future
+        //                 }),
+        //                 outputIndex: input.outputIndex,
+        //                 prevTxId: input.prevTxId,
+        //                 script: input.script.toBuffer(),
+        //                 sequenceNumber: input.sequenceNumber,
+        //             }
+        //         )
+        //     );
+        // });
+
         const lastSlpInputVin = transaction.inputs.length - 1
         for (let i = 0; i < stamps.length; i++) {
-            transaction.addInput(stamps[i].tx_hash, stamps[i].tx_pos)
+            const stamp = stamps[i]
+            const input = new bitcore.Transaction.Input.PublicKeyHash(
+                {
+                    output: new bitcore.Transaction.Output(
+                        {
+                            script: stamp.script,
+                            satoshis: stamp.value
+                        }),
+                        prevTxId: stamp.tx_hash,
+                        outputIndex: stamp.tx_pos,
+                        script: null
+                })
+            transaction.addInput(input)
         }
 
         for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
-            let redeemScript
             console.log(`Signing...`, i)
-            transaction.sign(
-                i,
-                keyPairFromPostOffice,
-                redeemScript,
-                0x01, // SIGHASH_ALL
-                this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT,
-                ECSignature.ECDSA,
-            )
+            const signature = transaction.inputs[i].getSignatures(transaction, hdNode.privateKey, i)[0]
+            transaction.applySignature(signature)
         }
 
         return transaction
@@ -83,10 +129,10 @@ export default class Transaction implements ITransaction {
     }
 
     splitUtxosIntoStamps(utxos: any, hdNode: any): Buffer {
-        const transactionBuilder =
-            this.config.network === 'mainnet'
-                ? new Transaction.bchjs.TransactionBuilder()
-                : new Transaction.bchjs.TransactionBuilder('testnet')
+        // const transactionBuilder =
+        //     this.config.network === 'mainnet'
+        //         ? new Transaction.bchjs.TransactionBuilder()
+        //         : new Transaction.bchjs.TransactionBuilder('testnet')
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
 
@@ -134,10 +180,12 @@ export default class Transaction implements ITransaction {
         return buf
     }
 
-    buildTransaction(incomingTransaction: any, stamps: any, keyPairFromPostOffice: any): Buffer {
-        const newTransaction = TransactionBuilder.fromTransaction(incomingTransaction, this.config.network)
-        const txBuf = this.addStampsForTransactionAndSignInputs(newTransaction, keyPairFromPostOffice, stamps)
-            .build()
+    buildTransaction(incomingTransaction: any, stamps: any, hdNode: any): Buffer {
+        // const newTransaction = TransactionBuilder.fromTransaction(incomingTransaction, this.config.network)
+        // const txBuf = this.addStampsForTransactionAndSignInputs(newTransaction, hdNode, stamps)
+        //     .build()
+        //     .toBuffer()
+        const txBuf = this.addStampsForTransactionAndSignInputs(incomingTransaction, hdNode, stamps)
             .toBuffer()
         return txBuf
     }

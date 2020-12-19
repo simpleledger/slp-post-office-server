@@ -36,6 +36,7 @@
     "axios": "^0.20.0",
     "bignumber.js": "^9.0.0",
     "bitcoincashjs-lib": "Bitcoin-com/bitcoincashjs-lib#v4.0.1",
+    "bitcore-mnemonic": "file:bitcore/packages/bitcore-mnemonic/",
     "bitcore-payment-protocol": "^8.1.1",
     "chalk": "^4.1.0",
     "clear": "^0.1.0",

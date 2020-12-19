@@ -1,6 +1,7 @@
 import PaymentProtocol from 'bitcore-payment-protocol'
 import bitcoinCashJsLib from 'bitcoincashjs-lib'
-import BCHJS from '@chris.troutner/bch-js'
+import Mnemonic from 'bitcore-mnemonic'
+import bitcore from 'bitcore-lib-cash'
 
 import Transaction from './../transaction/Transaction'
 import INetwork from './../network/INetwork'
@@ -8,7 +9,6 @@ import BCHDNetwork from './../network/BCHDNetwork'
 import IPostage from './IPostage'
 
 export default class Postage implements IPostage {
-    bchjs: any
     config: any
     network: INetwork
     transaction: Transaction
@@ -16,9 +16,11 @@ export default class Postage implements IPostage {
 
     constructor(config: any) {
         this.config = config
-        this.bchjs = new BCHJS()
         this.network = new BCHDNetwork(this.config)
         this.transaction = new Transaction(this.config.postage)
+
+        const code = new Mnemonic(config.postage.mnemonic)
+        this.hdNode = code.toHDPrivateKey()
     }
 
     getRates(): any {
@@ -26,21 +28,19 @@ export default class Postage implements IPostage {
     }
 
     async addStampsToTxAndBroadcast(rawIncomingPayment: Buffer): Promise<any> {
-        const rootSeed = await this.bchjs.Mnemonic.toSeed(this.config.postage.mnemonic)
-        const hdNode = this.bchjs.HDNode.fromSeed(rootSeed)
-        const keyPair = this.bchjs.HDNode.toKeyPair(hdNode)
-        const cashAddress = this.bchjs.HDNode.toCashAddress(hdNode)
+        const cashAddress = this.hdNode.privateKey.toAddress().toString()
 
         const paymentProtocol = new PaymentProtocol('BCH')
         const payment = PaymentProtocol.Payment.decode(rawIncomingPayment)
         const incomingTransaction = bitcoinCashJsLib.Transaction.fromHex(payment.transactions[0].toString('hex'))
+        const incomingTransactionBitcore = new bitcore.Transaction(payment.transactions[0].toString('hex'))
 
         // TODO this doesn't do what is expected
         // await this.network.validateSLPInputs(incomingTransaction.ins)
 
         const neededStampsForTransaction = this.transaction.getNeededStamps(incomingTransaction)
         const stamps = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTransaction, cashAddress)
-        const stampedTransaction = this.transaction.buildTransaction(incomingTransaction, stamps, keyPair)
+        const stampedTransaction = this.transaction.buildTransaction(incomingTransactionBitcore, stamps, this.hdNode)
         const transactionId = await this.network.broadcastTransaction(stampedTransaction)
 
         const memo = `Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`
@@ -51,14 +51,12 @@ export default class Postage implements IPostage {
     }
 
     async generateStamps(): Promise<void> {
-        const rootSeed = await this.bchjs.Mnemonic.toSeed(this.config.postage.mnemonic)
-        const hdNode = this.bchjs.HDNode.fromSeed(rootSeed)
-        const cashAddress = this.bchjs.HDNode.toCashAddress(hdNode)
+        const cashAddress = this.hdNode.privateKey.toAddress().toString()
 
         console.log('Generating stamps...')
         try {
             const utxosToSplit = await this.network.fetchUTXOsForStampGeneration(cashAddress)
-            const splitTransaction = this.transaction.splitUtxosIntoStamps(utxosToSplit, hdNode)
+            const splitTransaction = this.transaction.splitUtxosIntoStamps(utxosToSplit, this.hdNode)
             await this.network.broadcastTransaction(splitTransaction)
         } catch (e) {
             console.error(e.message || e.error || e)

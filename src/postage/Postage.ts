@@ -1,5 +1,4 @@
 import PaymentProtocol from 'bitcore-payment-protocol'
-import bitcoinCashJsLib from 'bitcoincashjs-lib'
 import Mnemonic from 'bitcore-mnemonic'
 import bitcore from 'bitcore-lib-cash'
 
@@ -32,13 +31,12 @@ export default class Postage implements IPostage {
 
         const paymentProtocol = new PaymentProtocol('BCH')
         const payment = PaymentProtocol.Payment.decode(rawIncomingPayment)
-        const incomingTransaction = bitcoinCashJsLib.Transaction.fromHex(payment.transactions[0].toString('hex'))
         const incomingTransactionBitcore = new bitcore.Transaction(payment.transactions[0].toString('hex'))
 
         // TODO this doesn't do what is expected
         // await this.network.validateSLPInputs(incomingTransaction.ins)
 
-        const neededStampsForTransaction = this.transaction.getNeededStamps(incomingTransaction)
+        const neededStampsForTransaction = this.transaction.getNeededStamps(incomingTransactionBitcore)
         const stamps = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTransaction, cashAddress)
         const stampedTransaction = this.transaction.buildTransaction(incomingTransactionBitcore, stamps, this.hdNode)
         const transactionId = await this.network.broadcastTransaction(stampedTransaction)

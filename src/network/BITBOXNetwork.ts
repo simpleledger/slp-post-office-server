@@ -1,6 +1,6 @@
 import errorMessages from '../errorMessages'
 import BCHJS from '@chris.troutner/bch-js'
-import config from '../../config.json'
+import { config } from '../serverConfig'
 import INetwork from './INetwork'
 import INetUtxo from './INetUtxo'
 
@@ -23,7 +23,7 @@ export default class BITBOXNetwork implements INetwork {
 
     async fetchUTXOsForStampGeneration(cashAddress: string): Promise<INetUtxo[]> {
         const utxoResponse = await this.bchjs.Electrumx.utxo(cashAddress)
-        const utxos = utxoResponse.utxos.filter(utxo => utxo.value > config.postageRate.weight * 2)
+        const utxos = utxoResponse.utxos.filter(utxo => utxo.value > config.postage.postageRate.weight * 2)
         if (utxos.length <= 0) {
             throw new Error('Insufficient Balance for Stamp Generation')
         }

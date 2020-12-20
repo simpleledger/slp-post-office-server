@@ -2,13 +2,12 @@
   "name": "simpleledger-post-office-server",
   "version": "0.0.1",
   "description": "SLP Post Office Server",
-  "main": "server.ts",
+  "main": "./build/server.js",
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only --poll ./server.ts",
+    "start": "ts-node-dev --respawn --transpile-only --poll ./src/server.ts",
     "start:production": "tsc && node ./build/server.js",
-    "cli": "ts-node cli/index.ts",
     "test": "tsc && nyc mocha -r ts-node/register ./test/*",
-    "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
+    "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}'"
   },
   "repository": {
     "type": "git",
@@ -64,23 +63,8 @@
     "@typescript-eslint/parser": "^2.10.0",
     "chai": "^4.2.0",
     "eslint": "^6.7.2",
-    "eslint-config-prettier": "6.7.0",
-    "eslint-plugin-prettier": "3.1.1",
-    "husky": "3.1.0",
     "lint-staged": "^9.5.0",
-    "prettier": "1.19.1",
     "sinon": "^9.2.0",
     "typescript": "^3.9.7"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsc --noEmit && lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts,tsx}": [
-      "eslint --fix",
-      "git add"
-    ]
   }
 }

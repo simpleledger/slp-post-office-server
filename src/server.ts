@@ -1,10 +1,10 @@
 import express = require('express')
 import cors = require('cors')
 import { Mutex } from 'async-mutex'
-import slpMiddleware from './src/slpMiddleware'
-import errorMessages from './src/errorMessages'
-import Postage from './src/postage/Postage'
-import TokenPriceFeeder from './src/tokenPriceFeeder/TokenPriceFeeder'
+import slpMiddleware from './slpMiddleware'
+import errorMessages from './errorMessages'
+import Postage from './postage/Postage'
+import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder'
 import { config } from './serverConfig'
 
 const app: express.Application = express()

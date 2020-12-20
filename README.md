@@ -18,19 +18,25 @@ You can follow [this page](https://github.com/TOKENLAND/simpleledger-post-office
 
 **Use it at your own risk, there are no guarantees**.
 
-### Installation and usage
+### Setup
 
-- Install the required packages and run the server
+- Install the required packages and start the server
 
 ```
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+nvm use v14.13.1
+git clone https://github.com/simpleledger/post-office-server.git
+cd post-office-server
+cp example.env .env
+$(EDITOR) .env
+git submodule update --init
 npm install -g yarn
 yarn
-yarn cli
 yarn start
 ```
-- Set up your postage rate and accepted SLP tokens with `yarn cli`.
-- Fill up the server wallet with UTXOs comprising of 546 satoshis.
-- Send a modified transaction from a client to the server, according to the protocol.
+
+TODO add a note here about how to run with a service file or something
+
 
 ### More information about the protocol
 

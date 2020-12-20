@@ -129,10 +129,10 @@ export default class Transaction implements ITransaction {
     }
 
     splitUtxosIntoStamps(utxos: any, hdNode: any): Buffer {
-        // const transactionBuilder =
-        //     this.config.network === 'mainnet'
-        //         ? new Transaction.bchjs.TransactionBuilder()
-        //         : new Transaction.bchjs.TransactionBuilder('testnet')
+        const transactionBuilder =
+            this.config.network === 'mainnet'
+                ? new Transaction.bchjs.TransactionBuilder()
+                : new Transaction.bchjs.TransactionBuilder('testnet')
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
 

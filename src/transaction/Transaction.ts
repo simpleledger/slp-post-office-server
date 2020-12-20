@@ -1,6 +1,7 @@
 import errorMessages from '../errorMessages'
 import BCHJS from '@chris.troutner/bch-js'
 import bitcore from 'bitcore-lib-cash'
+import * as as bchaddr from 'bchaddrjs-slp'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
 const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')
@@ -89,17 +90,15 @@ export default class Transaction implements ITransaction {
 
     getNeededStamps(transaction: any): number {
         BigNumber.set({ ROUNDING_MODE: BigNumber.ROUND_UP })
-        const transactionScript = Transaction.bchjs.Script.toASM(
-            transaction.outs[Transaction.SLP_OP_RETURN_VOUT].script,
-        ).split(' ')
+        const transactionScript = transaction.outputs[Transaction.SLP_OP_RETURN_VOUT].script.toASM().split(' ')
         if (transactionScript[Transaction.LOKAD_ID_INDEX] !== Transaction.LOKAD_ID_INDEX_VALUE)
             throw new Error(errorMessages.INVALID_SLP_OP_RETURN)
 
         let neededStamps = 0
         let tokenOutputPostage = 0
-        for (let i = 1; i < transaction.outs.length; i++) {
-            const addressFromOut = Transaction.bchjs.SLP.Address.toSLPAddress(
-                Transaction.bchjs.Address.fromOutputScript(transaction.outs[i].script),
+        for (let i = 1; i < transaction.outputs.length; i++) {
+            const addressFromOut = bchaddr.toSlpAddress(
+                transaction.outputs[i].script.toAddress().toString()
             )
             const postOfficeAddress = this.config.postageRate.address
             if (postOfficeAddress === addressFromOut) tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i
@@ -111,7 +110,7 @@ export default class Transaction implements ITransaction {
         const postagePaymentTokenId = transactionScript[Transaction.TOKEN_ID_INDEX]
         const stampDetails =
             this.config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
-        const minimumStampsNeeded = transaction.outs.length - transaction.ins.length + 1
+        const minimumStampsNeeded = transaction.outputs.length - transaction.inputs.length + 1
         if (stampDetails) {
             const stampRate = new BigNumber(stampDetails.rate).times(10 ** stampDetails.decimals)
             const amountPostagePaid = new BigNumber(transactionScript[tokenOutputPostage], 16).times(

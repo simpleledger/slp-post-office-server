@@ -2,7 +2,7 @@ import HttpClient from './HttpClient'
 import IApiWrapper from './IApiWrapper'
 import { AxiosResponse } from 'axios'
 
-export default class CoinFlexApiWrapper extends HttpClient implements IApiWrapper {
+export default class CoinFlexFLEXApiWrapper extends HttpClient implements IApiWrapper {
     public constructor() {
         super('https://v2api.coinflex.com/v2/ticker')
     }

@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-import CoinFlexApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinflexApiWrapper'
+import CoinFlexFLEXApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
 
 const config = {
     port: process.env.SERVER_PORT,
@@ -27,11 +27,27 @@ const config = {
         }
     },
     priceFeeders: [
+        /*
+        // FLEX
         {
             "tokenId": "fb1813fd1a53c1bed61f15c0479cc5315501e6da6a4d06da9d8122c1a4fabb6c",
-            "feederClass": CoinFlexApiWrapper,
+            "feederClass": CoinFlexFLEXApiWrapper,
             "useInitialStampRateAsMin": true
         },
+        */
+
+        /*
+        // SPICE
+        {
+            "tokenId": "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
+            "feederClass": BitcoinComSpiceApiWrapper,
+            "useInitialStampRateAsMin": true
+        }
+        */
+
+        /*
+         * Add your own implementations here...
+         */
     ]
 }
 

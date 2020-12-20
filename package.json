@@ -5,7 +5,7 @@
   "main": "./build/server.js",
   "scripts": {
     "start": "ts-node-dev --respawn --transpile-only --poll ./src/server.ts",
-    "start:production": "tsc && node ./build/server.js",
+    "start:production": "tsc && node ./build/src/server.js",
     "test": "tsc && nyc mocha -r ts-node/register ./test/*",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}'"
   },

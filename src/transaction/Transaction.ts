@@ -1,7 +1,7 @@
 import errorMessages from '../errorMessages'
 import BCHJS from '@chris.troutner/bch-js'
 import bitcore from 'bitcore-lib-cash'
-import * as as bchaddr from 'bchaddrjs-slp'
+import * as bchaddr from 'bchaddrjs-slp'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
 const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')

@@ -1,5 +1,5 @@
 // Unit Tests for Transaction class
-import bitcoinCashJsLib from 'bitcoincashjs-lib'
+import bitcore from 'bitcore-lib-cash'
 import chai from 'chai'
 
 import Transaction from '../src/transaction/Transaction'
@@ -17,25 +17,23 @@ describe('#Transaction.ts', () => {
 
     describe('#addStampsForTransactionAndSignInputs', () => {
         it('should add stamps to the transaction', () => {
-            const incomingTransaction = bitcoinCashJsLib.TransactionBuilder.fromTransaction(
-                bitcoinCashJsLib.Transaction.fromHex(
-                    '010000000101ece1cd3cb5c7097b173c906f3ab3033e0f1065891964ec3bdbd7b0b16' +
-                        '8c0fb0100000000ffffffff030000000000000000406a04534c500001010453454e44' +
-                        '209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11080' +
-                        '0000000479a44bb080000000002625a0022020000000000001976a914a0f531f4ff81' +
-                        '0a415580c12e54a7072946bb927e88ac220200000000000017a914e8f3b3d3ceea2d7' +
-                        'b8750ef400161c6162b3b484b8700000000',
-                ),
+            const incomingTransaction = new bitcore.Transaction(
+                '010000000101ece1cd3cb5c7097b173c906f3ab3033e0f1065891964ec3bdbd7b0b16' +
+                    '8c0fb0100000000ffffffff030000000000000000406a04534c500001010453454e44' +
+                    '209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11080' +
+                    '0000000479a44bb080000000002625a0022020000000000001976a914a0f531f4ff81' +
+                    '0a415580c12e54a7072946bb927e88ac220200000000000017a914e8f3b3d3ceea2d7' +
+                    'b8750ef400161c6162b3b484b8700000000'
             )
-            chai.assert.equal(incomingTransaction.tx.ins.length, 1)
+            chai.assert.equal(incomingTransaction.inputs.length, 1)
 
-            const keyPair = Transaction.bchjs.ECPair.fromWIF('KxZaPyJTSbkoThCU3o8WFyU1xRsZ9PJZVY4abkGm1ZYuhRqpz328')
+            const hdNode = {privateKey: new bitcore.PrivateKey.fromWIF('L1XPxGFKXjYrC3mT91Sqr9bXLemepHHPGif1duu9BzaDZZ7P8Mq3')}
             const resultTransaction = transaction.addStampsForTransactionAndSignInputs(
                 incomingTransaction,
-                keyPair,
+                hdNode,
                 mockData.stampMock,
             )
-            chai.assert.equal(resultTransaction.tx.ins.length, 3)
+            chai.assert.equal(resultTransaction.inputs.length, 3)
         })
     })
 
@@ -43,9 +41,9 @@ describe('#Transaction.ts', () => {
         it('should raise INVALID_SLP_OP_RETURN on providing invalid LOKAD_ID', () => {
             try {
                 const transactionMockWithinvalidLokadIdOPReturn = {
-                    outs: [
+                    outputs: [
                         {
-                            script: Buffer.from(
+                            script: bitcore.Script.fromHex(
                                 '6a0001010453454e44209fc89d6b7d5be2eac0b3787c5b8236bca5de641b' +
                                     '5bafafc8f450727b63615c110800000000479a44bb080000000002625a00',
                                 'hex',
@@ -62,12 +60,12 @@ describe('#Transaction.ts', () => {
 
         it('should raise an error if no payment was provided to the server', () => {
             try {
-                const transactionMockWithNoPaymentToServer = bitcoinCashJsLib.Transaction.fromHex(
+                const transactionMockWithNoPaymentToServer = new bitcore.Transaction(
                     '010000000101ece1cd3cb5c7097b173c906f3ab3033e0f1065891964ec3bdbd7b0b16' +
                         '8c0fb0100000000ffffffff020000000000000000376a04534c500001010453454e44' +
                         '209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11080' +
                         '0000000479a44bb22020000000000001976a914a0f531f4ff810a415580c12e54a707' +
-                        '2946bb927e88ac00000000',
+                        '2946bb927e88ac00000000'
                 )
 
                 transaction.getNeededStamps(transactionMockWithNoPaymentToServer)
@@ -78,7 +76,7 @@ describe('#Transaction.ts', () => {
         })
         it('should raise an error if the transaction uses a token that is not supported by the server', () => {
             try {
-                const transactionMockWithUnsupportedToken = bitcoinCashJsLib.Transaction.fromHex(
+                const transactionMockWithUnsupportedToken = new bitcore.Transaction(
                     '010000000101ece1cd3cb5c7097b173c906f3ab3033e0f1065891964ec3bdbd7b0b16' +
                         '8c0fb0100000000ffffffff030000000000000000326a04534c50000101204de69e37' +
                         '4a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf0800000000479' +
@@ -94,7 +92,7 @@ describe('#Transaction.ts', () => {
             }
         })
         it('should return number of stamps requiered for the transaction', () => {
-            const validMockTransaction = bitcoinCashJsLib.Transaction.fromHex(
+            const validMockTransaction = new bitcore.Transaction(
                 '010000000101ece1cd3cb5c7097b173c906f3ab3033e0f1065891964ec3bdbd7b0b16' +
                     '8c0fb0100000000ffffffff030000000000000000406a04534c500001010453454e44' +
                     '209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11080' +
@@ -110,24 +108,21 @@ describe('#Transaction.ts', () => {
 
     describe('#splitUtxosIntoStamps', () => {
         it('should generate a transaction spliting utxos to dust amount utxos', async () => {
-            const rootSeed = await Transaction.bchjs.Mnemonic.toSeed(mockConfig.mnemonic)
-            const hdNode = Transaction.bchjs.HDNode.fromSeed(rootSeed)
+            const hdNode = {privateKey: new bitcore.PrivateKey.fromWIF('L1XPxGFKXjYrC3mT91Sqr9bXLemepHHPGif1duu9BzaDZZ7P8Mq3')}
 
-            // mockData.utxosToSplitMock contains 2148 sat, should split into 4 stamps
-            const hex = transaction.splitUtxosIntoStamps(mockData.utxosToSplitMock, hdNode)
-            const generatedTransaction = bitcoinCashJsLib.Transaction.fromHex(hex)
+            // mockData.utxosToSplitMock contains 2148 sat, should split into 3 stamps
+            const tx = transaction.splitUtxosIntoStamps(mockData.utxosToSplitMock, hdNode)
+            const generatedTransaction = new bitcore.Transaction(tx)
 
-            chai.assert.equal(generatedTransaction.outs.length, 4)
+            chai.assert.equal(generatedTransaction.outputs.length, 3)
         })
     })
 
     describe('#buildTransaction', () => {
         it('should build a transaction with stamps added', async () => {
-            const rootSeed = await Transaction.bchjs.Mnemonic.toSeed(mockConfig.mnemonic)
-            const hdNode = Transaction.bchjs.HDNode.fromSeed(rootSeed)
-            const keyPair = Transaction.bchjs.HDNode.toKeyPair(hdNode)
+            const hdNode = {privateKey: new bitcore.PrivateKey.fromWIF('L1XPxGFKXjYrC3mT91Sqr9bXLemepHHPGif1duu9BzaDZZ7P8Mq3')}
 
-            const incomingTransaction = bitcoinCashJsLib.Transaction.fromHex(
+            const incomingTransaction = new bitcore.Transaction(
                 '0100000001ca6193753fe1e19d89c8785b89bd7bfd0f37efbd0037a27e2126e9fffaa' +
                     '87882030000006a47304402204863028b70ccee19721d6d06489a300be559d4906f3e' +
                     '92c2bdb4b215dd9a4de702201e21f572dfb914f6579388b58275896d5dcc3659164f2' +
@@ -136,11 +131,11 @@ describe('#Transaction.ts', () => {
                     '54e44209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c' +
                     '110800000000479a44bb080000000002625a0022020000000000001976a914a0f531f' +
                     '4ff810a415580c12e54a7072946bb927e88ac220200000000000017a914e8f3b3d3ce' +
-                    'ea2d7b8750ef400161c6162b3b484b8700000000',
+                    'ea2d7b8750ef400161c6162b3b484b8700000000'
             )
-            const hex = transaction.buildTransaction(incomingTransaction, mockData.stampMock, keyPair)
-            const stampedTransaction = bitcoinCashJsLib.Transaction.fromHex(hex)
-            chai.assert.equal(stampedTransaction.ins.length, 3)
+            const tx = transaction.buildTransaction(incomingTransaction, mockData.stampMock, hdNode)
+            const stampedTransaction = new bitcore.Transaction(tx)
+            chai.assert.equal(stampedTransaction.inputs.length, 3)
         })
     })
 })

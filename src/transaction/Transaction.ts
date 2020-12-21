@@ -1,5 +1,4 @@
 import errorMessages from '../errorMessages'
-import BCHJS from '@chris.troutner/bch-js'
 import bitcore from 'bitcore-lib-cash'
 import * as bchaddr from 'bchaddrjs-slp'
 import BigNumber from 'bignumber.js'
@@ -12,8 +11,6 @@ export default class Transaction implements ITransaction {
     static TOKEN_ID_INDEX = 4
     static LOKAD_ID_INDEX_VALUE = '534c5000'
     static SLP_OP_RETURN_VOUT = 0
-
-    static bchjs = new BCHJS()
 
     config: any
 
@@ -128,55 +125,48 @@ export default class Transaction implements ITransaction {
     }
 
     splitUtxosIntoStamps(utxos: any, hdNode: any): Buffer {
-        const transactionBuilder =
-            this.config.network === 'mainnet'
-                ? new Transaction.bchjs.TransactionBuilder()
-                : new Transaction.bchjs.TransactionBuilder('testnet')
+        const address = hdNode.privateKey.toAddress()
+
+        const unspentOutputs = []
+        utxos.forEach(element => {
+            const unspentOutput = new bitcore.Transaction.UnspentOutput({
+                txid: element.tx_hash,
+                vout: element.tx_pos,
+                satoshis: element.value,
+                script: element.script
+            })
+            unspentOutputs.push(unspentOutput)
+        });
+        const transaction = new bitcore.Transaction().from(unspentOutputs)
+
+        const stampSize = this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
+        let numberOfPossibleStamps = Math.floor(originalAmount / stampSize)
 
-        const numberOfPossibleStamps = originalAmount / (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
-        const hypotheticalByteCount = Transaction.bchjs.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: numberOfPossibleStamps },
-        )
-        const satoshisPerByte = 1.4
-        const hypotheticalTxFee = Math.floor(satoshisPerByte * hypotheticalByteCount)
-        let numberOfActualStamps =
-            (originalAmount - hypotheticalTxFee) / (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
-        if (numberOfActualStamps > 100) {
-            numberOfActualStamps = 50
+        const BCH_MAX_OUTPUTS = 2500
+        if (numberOfPossibleStamps > BCH_MAX_OUTPUTS) {
+            numberOfPossibleStamps = BCH_MAX_OUTPUTS - 1
         }
-
-        utxos.forEach(utxo => transactionBuilder.addInput(utxo.tx_hash, utxo.tx_pos))
-        const keyPair = Transaction.bchjs.HDNode.toKeyPair(hdNode)
-        const outputAddress = Transaction.bchjs.HDNode.toCashAddress(hdNode)
-        const byteCount = Transaction.bchjs.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: numberOfActualStamps },
-        )
-        const txFee = Math.floor(satoshisPerByte * byteCount)
-        const totalSatoshisToSend =
-            (this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT) * numberOfActualStamps
-
-        for (let i = 0; i < numberOfActualStamps; i++) {
-            transactionBuilder.addOutput(outputAddress, this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT)
-        }
-        const change = originalAmount - totalSatoshisToSend - txFee
-        if (change > 1082) {
-            transactionBuilder.addOutput(outputAddress, change)
-        }
-
-        // Sign the transaction with the HD node.
-        let redeemScript
-        for (let i = 0; i < utxos.length; i++) {
-            transactionBuilder.sign(i, keyPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, utxos[i].value)
-        }
-
-        const tx = transactionBuilder.build()
-        const buf = tx.toBuffer()
-
-        return buf
+        
+        transaction.feePerByte(1)
+        for(let i=0; i < numberOfPossibleStamps; i++){
+            let fee = transaction._estimateSize()
+            let unspentValue = transaction._getUnspentValue()
+            if (unspentValue - fee > stampSize + 34) {
+                transaction.to(address, stampSize)
+            }
+            if (i == numberOfPossibleStamps - 1){
+                fee = transaction._estimateSize()
+                unspentValue = transaction._getUnspentValue()
+                if (unspentValue - fee > 546 + 34) {
+                    transaction.change(address)
+                }
+            }
+        }        
+        transaction.sign(hdNode.privateKey)
+        
+        return Buffer.from(transaction.serialize(), 'hex')
     }
 
     buildTransaction(incomingTransaction: any, stamps: any, hdNode: any): Buffer {

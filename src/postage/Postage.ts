@@ -55,7 +55,8 @@ export default class Postage implements IPostage {
         try {
             const utxosToSplit = await this.network.fetchUTXOsForStampGeneration(cashAddress)
             const splitTransaction = this.transaction.splitUtxosIntoStamps(utxosToSplit, this.hdNode)
-            await this.network.broadcastTransaction(splitTransaction)
+            const txid = await this.network.broadcastTransaction(splitTransaction);
+            console.log(`Split: ${txid}`);
         } catch (e) {
             console.error(e.message || e.error || e)
         }

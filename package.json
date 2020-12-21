@@ -29,7 +29,6 @@
   },
   "homepage": "https://github.com/slpland/simpleledger-post-office-server#readme",
   "dependencies": {
-    "@chris.troutner/bch-js": "^3.3.5",
     "@types/bitcore-lib-cash": "^8.23.0",
     "@types/express": "^4.17.2",
     "@types/mocha": "^8.0.3",

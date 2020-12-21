@@ -1,8 +1,8 @@
+import { Config } from './../config'
 import BigNumber from 'bignumber.js'
 import IApiWrapper from './ApiWrapper/IApiWrapper'
 
 export default class TokenPriceFeeder {
-    private config: any
     private tickInSeconds: number
     private tokenId: string
     private apiWrapper: IApiWrapper
@@ -16,21 +16,19 @@ export default class TokenPriceFeeder {
     }
 
     public constructor(
-        config: any,
         tickInSeconds: number,
         tokenId: string,
         apiWrapper: IApiWrapper,
         useInitialStampRateAsMin: boolean = false,
         applyCustomRule?: (price: number) => number
         ) {
-            this.config = config
             this.tickInSeconds = tickInSeconds
             this.tokenId = tokenId
             this.apiWrapper = apiWrapper
             this._applyCustomRule = applyCustomRule
             this.useInitialStampRateAsMin = useInitialStampRateAsMin
 
-            this.config.postageRate.stamps.forEach(stamp => {
+            Config.postageRate.stamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {
                     this.initialStampRate = new BigNumber(stamp.rate)
                 }
@@ -41,7 +39,7 @@ export default class TokenPriceFeeder {
     public async run() {
         setInterval(async () => {
             const priceData = await this.apiWrapper.getPrice()
-            const currentStamps = this.config.postageRate.stamps
+            const currentStamps = Config.postageRate.stamps
             currentStamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {
                     let price: number

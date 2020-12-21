@@ -4,6 +4,7 @@ import * as bchaddr from 'bchaddrjs-slp'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
 const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')
+import { Config } from './../config'
 import { log } from './../logger';
 
 export default class Transaction implements ITransaction {
@@ -12,12 +13,6 @@ export default class Transaction implements ITransaction {
     static TOKEN_ID_INDEX = 4
     static LOKAD_ID_INDEX_VALUE = '534c5000'
     static SLP_OP_RETURN_VOUT = 0
-
-    config: any
-
-    constructor(config: any) {
-        this.config = config
-    }
 
     addStampsForTransactionAndSignInputs(transaction: any, hdNode: any, stamps: any): any {
 
@@ -98,7 +93,7 @@ export default class Transaction implements ITransaction {
             const addressFromOut = bchaddr.toSlpAddress(
                 transaction.outputs[i].script.toAddress().toString()
             )
-            const postOfficeAddress = this.config.postageRate.address
+            const postOfficeAddress = Config.postageRate.address
             if (postOfficeAddress === addressFromOut) tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i
         }
         if (tokenOutputPostage === 0) throw new Error(errorMessages.INSUFFICIENT_POSTAGE)
@@ -107,7 +102,7 @@ export default class Transaction implements ITransaction {
         // Check if postage is being paid accordingly
         const postagePaymentTokenId = transactionScript[Transaction.TOKEN_ID_INDEX]
         const stampDetails =
-            this.config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
+            Config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
         const minimumStampsNeeded = transaction.outputs.length - transaction.inputs.length + 1
         if (stampDetails) {
             const stampRate = new BigNumber(stampDetails.rate).times(10 ** stampDetails.decimals)
@@ -140,7 +135,7 @@ export default class Transaction implements ITransaction {
         });
         const transaction = new bitcore.Transaction().from(unspentOutputs)
 
-        const stampSize = this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT
+        const stampSize = Config.postageRate.weight + Transaction.MIN_BYTES_INPUT
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
         let numberOfPossibleStamps = Math.floor(originalAmount / stampSize)

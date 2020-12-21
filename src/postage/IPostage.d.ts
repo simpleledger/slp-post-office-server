@@ -1,5 +1,5 @@
 interface IPostageConstructor {
-    new (config: any): IPostage;
+    new (): IPostage;
 }
 
 export default interface IPostage {

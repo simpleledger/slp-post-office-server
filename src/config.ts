@@ -4,12 +4,15 @@ import CoinFlexFLEXApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinflexFLEXAp
 import BitcoinComSpiceApiWrapper from './tokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
 import CoinexUSDTApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
 
-const config = {
-    port: process.env.SERVER_PORT,
-    bchd: {
+export class Config {
+    static server = {
+        port: process.env.SERVER_PORT ? process.env.SERVER_PORT : 3000,
+        host: process.env.SERVER_HOST ? process.env.SERVER_HOST : '0.0.0.0',
+    }
+    static bchd = {
         server: process.env.BCHD_SERVER,
-    },
-    postage: {
+    }
+    static postage = {
         mnemonic: process.env.MNEMONIC,
         network: process.env.NETWORK,
         postageRate: {
@@ -27,8 +30,8 @@ const config = {
                 }
             ]
         }
-    },
-    priceFeeders: [
+    }
+    static priceFeeders = [
         /*
         // FLEX / coinflex.com
         {
@@ -61,5 +64,3 @@ const config = {
          */
     ]
 }
-
-export { config }

@@ -1,5 +1,6 @@
 import errorMessages from '../errorMessages'
 import { GrpcClient } from 'grpc-bchrpc-node'
+import { Config } from './../config'
 import { log } from './../logger';
 import INetwork from './INetwork'
 import INetUtxo from './INetUtxo'
@@ -8,11 +9,9 @@ export default class BCHDNetwork implements INetwork {
     static MIN_BYTES_INPUT = 181
 
     bchd: any
-    config: any
 
-    constructor(config: any) {
-        this.config = config
-        this.bchd = new GrpcClient({ url: this.config.bchd.server })
+    constructor() {
+        this.bchd = new GrpcClient({ url: Config.bchd.server })
     }
 
     private async checkServerSLPIndexingEnabled(): Promise<void> {
@@ -47,7 +46,7 @@ export default class BCHDNetwork implements INetwork {
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
                 script: Buffer.from(u.getPubkeyScript_asU8()).toString('hex'),
             }))
-            .filter(u => u.value > this.config.postage.postageRate.weight * 2)
+            .filter(u => u.value > Config.postage.postageRate.weight * 2)
 
         log.debug(utxos)
 

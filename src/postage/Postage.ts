@@ -1,6 +1,7 @@
 import PaymentProtocol from 'bitcore-payment-protocol'
 import Mnemonic from 'bitcore-mnemonic'
 import bitcore from 'bitcore-lib-cash'
+import { Config } from './../config'
 import { log } from './../logger';
 
 import Transaction from './../transaction/Transaction'
@@ -9,22 +10,20 @@ import BCHDNetwork from './../network/BCHDNetwork'
 import IPostage from './IPostage'
 
 export default class Postage implements IPostage {
-    config: any
     network: INetwork
     transaction: Transaction
     hdNode: any
 
-    constructor(config: any) {
-        this.config = config
-        this.network = new BCHDNetwork(this.config)
-        this.transaction = new Transaction(this.config.postage)
+    constructor() {
+        this.network = new BCHDNetwork()
+        this.transaction = new Transaction(Config.postage)
 
-        const code = new Mnemonic(config.postage.mnemonic)
+        const code = new Mnemonic(Config.postage.mnemonic)
         this.hdNode = code.toHDPrivateKey()
     }
 
     getRates(): any {
-        return this.config.postage.postageRate
+        return Config.postage.postageRate
     }
 
     async addStampsToTxAndBroadcast(rawIncomingPayment: Buffer): Promise<any> {

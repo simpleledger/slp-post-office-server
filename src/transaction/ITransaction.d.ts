@@ -1,5 +1,5 @@
 interface ITransactionConstructor {
-    new (config: any): ITransaction;
+    new (): ITransaction;
 }
 
 export default interface ITransaction {

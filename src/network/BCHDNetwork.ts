@@ -1,5 +1,6 @@
 import errorMessages from '../errorMessages'
 import { GrpcClient } from 'grpc-bchrpc-node'
+import { log } from './../logger';
 import INetwork from './INetwork'
 import INetUtxo from './INetUtxo'
 
@@ -48,7 +49,7 @@ export default class BCHDNetwork implements INetwork {
             }))
             .filter(u => u.value > this.config.postage.postageRate.weight * 2)
 
-        console.log(utxos)
+        log.debug(utxos)
 
         if (utxos.length <= 0) {
             throw new Error('Insufficient Balance for Stamp Generation')
@@ -93,14 +94,14 @@ export default class BCHDNetwork implements INetwork {
     }
 
     async broadcastTransaction(rawTransaction: Buffer): Promise<string> {
-        console.log('Broadcasting transaction...')
+        log.info(`Broadcasting transaction: ${rawTransaction.toString('hex')}`);
         const res = await this.bchd.submitTransaction({
             txnBuf: rawTransaction,
         })
 
         const transactionId = Buffer.from(res.getHash_asU8().reverse()).toString('hex')
 
-        console.log(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)
+        log.info(`https://explorer.bitcoin.com/bch/tx/${transactionId}`)
         return transactionId
     }
 }

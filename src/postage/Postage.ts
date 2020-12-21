@@ -1,6 +1,7 @@
 import PaymentProtocol from 'bitcore-payment-protocol'
 import Mnemonic from 'bitcore-mnemonic'
 import bitcore from 'bitcore-lib-cash'
+import { log } from './../logger';
 
 import Transaction from './../transaction/Transaction'
 import INetwork from './../network/INetwork'
@@ -51,14 +52,14 @@ export default class Postage implements IPostage {
     async generateStamps(): Promise<void> {
         const cashAddress = this.hdNode.privateKey.toAddress().toString()
 
-        console.log('Generating stamps...')
+        log.info('Generating stamps...')
         try {
             const utxosToSplit = await this.network.fetchUTXOsForStampGeneration(cashAddress)
             const splitTransaction = this.transaction.splitUtxosIntoStamps(utxosToSplit, this.hdNode)
             const txid = await this.network.broadcastTransaction(splitTransaction);
-            console.log(`Split: ${txid}`);
+            log.info(`Broadcasted split tx: ${txid}`);
         } catch (e) {
-            console.error(e.message || e.error || e)
+            log.error(e.message || e.error || e)
         }
     }
 }

@@ -1,6 +1,7 @@
 import HttpClient from './HttpClient'
 import IApiWrapper from './IApiWrapper'
 import { AxiosResponse } from 'axios'
+import { log } from './../../logger';
 
 export default class CoinexUSDTApiWrapper extends HttpClient implements IApiWrapper {
     public constructor() {
@@ -12,7 +13,7 @@ export default class CoinexUSDTApiWrapper extends HttpClient implements IApiWrap
             const res = await this.instance.get('');
             return Number(res.data.ticker.high);
         } catch(e) {
-            console.error(`Error while trying to get price data from api.coinex.com: ${e.message}`)
+            log.error(`Error while trying to get price data from api.coinex.com: ${e.message}`)
         }
     }
     

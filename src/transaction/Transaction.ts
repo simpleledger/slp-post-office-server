@@ -4,6 +4,7 @@ import * as bchaddr from 'bchaddrjs-slp'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
 const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')
+import { log } from './../logger';
 
 export default class Transaction implements ITransaction {
     static MIN_BYTES_INPUT = 181
@@ -77,7 +78,7 @@ export default class Transaction implements ITransaction {
         }
 
         for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
-            console.log(`Signing...`, i)
+            log.debug(`Signing... ${i}`)
             const signature = transaction.inputs[i].getSignatures(transaction, hdNode.privateKey, i)[0]
             transaction.applySignature(signature)
         }

@@ -6,6 +6,7 @@ import errorMessages from './errorMessages'
 import Postage from './postage/Postage'
 import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder'
 import { config } from './serverConfig'
+import { log } from './logger';
 
 const app: express.Application = express()
 app.use(cors())
@@ -44,7 +45,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
             release()
         }
     } catch (e) {
-        console.error(e)
+        log.error(e)
         if (Object.values(errorMessages).includes(e.message)) {
             res.status(400).send(e.message)
         } else {
@@ -56,11 +57,12 @@ app.post('/postage', async function(req: any, res: express.Response) {
 app.listen(config.port, async () => {
     const postage = new Postage(config)
     const cashAddress = postage.hdNode.privateKey.toAddress().toString()
-    console.log(`Send stamps to: ${cashAddress}`)
+    log.info(`Send stamps to: ${cashAddress}`)
 
     const stampGenerationIntervalInMinutes = 30
     setInterval(postage.generateStamps, 1000 * 60 * stampGenerationIntervalInMinutes)
     postage.generateStamps()
 
-    console.log(`Post Office listening on port ${config.port}!`)
+
+    log.info(`Post Office listening on port ${config.port}!`);
 })

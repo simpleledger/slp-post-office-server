@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import cors = require('cors')
 import { Mutex } from 'async-mutex';
 import errorMessages from './errorMessages';
@@ -30,9 +31,16 @@ const slpMiddleware = (req: express.Request, res: express.Response, next: expres
     });
 };
 
+const limiter = rateLimit({
+    windowMs: Config.server.limitEvery,
+    max: Config.server.limitMaxReqs
+});
+
 const app: express.Application = express();
 app.use(cors());
 app.use(slpMiddleware);
+app.use(limiter);
+
 const mutex = new Mutex();
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {

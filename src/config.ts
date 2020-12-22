@@ -36,6 +36,8 @@ export class Config {
     static server = {
         port: Number(process.env.SERVER_PORT ? process.env.SERVER_PORT : 3000),
         host: process.env.SERVER_HOST ? process.env.SERVER_HOST : '0.0.0.0',
+        limitEvery: 15 * 60 * 1000,
+        limitMaxReqs: 100,
     }
     static bchd = {
         server: process.env.BCHD_SERVER,

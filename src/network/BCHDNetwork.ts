@@ -94,14 +94,14 @@ export default class BCHDNetwork implements INetwork {
     }
 
     async broadcastTransaction(rawTransaction: Buffer): Promise<string> {
-        Log.info(`Broadcasting transaction: ${rawTransaction.toString('hex')}`);
+        Log.debug(`Broadcasting transaction: ${rawTransaction.toString('hex')}`);
         const res = await this.bchd.submitTransaction({
             txnBuf: rawTransaction,
         });
 
         const transactionId = Buffer.from(res.getHash_asU8().reverse()).toString('hex');
 
-        Log.info(`https://explorer.bitcoin.com/bch/tx/${transactionId}`);
+        Log.info(`https://explorer.bitcoin.com/bch/tx/${transactionId}`); // TODO better logging here
         return transactionId;
     }
 }

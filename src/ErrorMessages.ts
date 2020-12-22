@@ -1,5 +1,5 @@
 // Error messages according to the spec: https://github.com/simpleledger/slp-specifications/blob/master/slp-postage-protocol.md#common-errors
-const errorMessages = {
+const ErrorMessages = {
     UNSUPPORTED_CONTENT_TYPE: 'Unsupported Content-Type for payment',
     INVALID_PAYMENT: 'Invalid Payment',
     INVALID_SLP_OP_RETURN: 'Could not parse OP_RETURN output',
@@ -8,4 +8,4 @@ const errorMessages = {
     UNAVAILABLE_STAMPS: 'Stamps currently unavailable. In need of refill'
 };
 
-export default errorMessages;
+export default ErrorMessages;

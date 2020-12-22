@@ -1,22 +1,21 @@
 import PaymentProtocol from 'bitcore-payment-protocol';
 import Mnemonic from 'bitcore-mnemonic';
 import bitcore from 'bitcore-lib-cash';
-import { Config } from './../config';
-import { Log } from './../log';
 
-import Transaction from './../transaction/Transaction';
-import INetwork from './../network/INetwork';
-import BCHDNetwork from './../network/BCHDNetwork';
-import IPostage from './IPostage';
-import INetUtxo from '../network/INetUtxo';
+import { Config } from './Config';
+import { Log } from './Log';
+import Transaction from './Transaction';
+import AbstractNetwork from './Network/AbstractNetwork';
+import BCHDNetwork from './Network/BCHDNetwork';
+import INetUtxo from './Network/INetUtxo';
 
-export default class Postage implements IPostage {
-    network: INetwork
-    tx: Transaction
+export default class Postage {
+    network: AbstractNetwork;
+    tx: Transaction;
     hdNode: bitcore.HDPrivateKey;
 
-    constructor() {
-        this.network = new BCHDNetwork();
+    constructor(network: AbstractNetwork) {
+        this.network = network;
         this.tx = new Transaction();
 
         const code = new Mnemonic(Config.postage.mnemonic);
@@ -55,7 +54,7 @@ export default class Postage implements IPostage {
             const utxosToSplit: INetUtxo[] = await this.network.fetchUTXOsForStampGeneration(cashAddress);
             const splitTx: bitcore.Transaction = this.tx.splitUtxosIntoStamps(utxosToSplit, this.hdNode);
             const txid: string = await this.network.broadcastTransaction(Buffer.from(splitTx.serialize(), 'hex'));
-            Log.info(`Broadcasted split tx: ${txid}`);
+            Log.info(`Broadcasted stamp split tx: ${txid}`);
         } catch (e) {
             Log.error(e.message || e.error || e);
         }

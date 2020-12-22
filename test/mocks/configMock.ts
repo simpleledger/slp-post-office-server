@@ -1,9 +1,10 @@
 import { BigNumber } from 'bignumber.js';
-import { Config, PostageConfig } from './../../src/config'
+import { Config, PostageConfig } from './../../src/Config'
 
 const mockPostage: PostageConfig = {
     mnemonic: 'dsds',
     network: 'mainnet',
+    memo: "MOCK Postage",
     postageRate: {
         version: 1,
         address: 'simpleledger:pr508v7nem4z67u82rh5qqtpcctzkw6gfvpl8d0ak5',

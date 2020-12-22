@@ -2,9 +2,9 @@ require('dotenv').config();
 
 import { BigNumber } from 'bignumber.js';
 
-// import CoinFlexFLEXApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
-// import BitcoinComSpiceApiWrapper from './tokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
-// import CoinexUSDTApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
+// import CoinFlexFLEXApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
+// import BitcoinComSpiceApiWrapper from './TokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
+// import CoinexUSDTApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
 
 export interface StampConfig {
     name: string;
@@ -16,8 +16,8 @@ export interface StampConfig {
 
 export interface PostageConfig {
     mnemonic: string;
-    network: string;
     memo: string;
+    network: string;
     postageRate: {
         version: number;
         address: string;

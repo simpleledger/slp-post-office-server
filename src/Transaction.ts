@@ -1,13 +1,13 @@
-import errorMessages from '../errorMessages';
 import bitcore from 'bitcore-lib-cash';
 import * as bchaddr from 'bchaddrjs-slp';
 import BigNumber from 'bignumber.js';
-import ITransaction from './ITransaction';
-import INetUtxo from '../network/INetUtxo';
-import { Config } from './../config';
-import { Log } from './../log';
 
-export default class Transaction implements ITransaction {
+import { Config } from './Config';
+import { Log } from './Log';
+import errorMessages from './ErrorMessages';
+import INetUtxo from './Network/INetUtxo';
+
+export default class Transaction {
     static MIN_BYTES_INPUT = 181
     static LOKAD_ID_INDEX = 1
     static TOKEN_ID_INDEX = 4

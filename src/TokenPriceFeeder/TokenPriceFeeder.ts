@@ -1,4 +1,4 @@
-import { Config } from './../config';
+import { Config } from './../Config';
 import BigNumber from 'bignumber.js';
 import IApiWrapper from './ApiWrapper/IApiWrapper';
 

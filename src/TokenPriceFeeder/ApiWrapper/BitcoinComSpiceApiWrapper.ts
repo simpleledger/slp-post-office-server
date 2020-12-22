@@ -1,6 +1,6 @@
 import HttpClient from './HttpClient';
 import IApiWrapper from './IApiWrapper';
-import { Log } from './../../log';
+import { Log } from './../../Log';
 
 export default class BitcoinComSpiceApiWrapper extends HttpClient implements IApiWrapper {
     public constructor() {

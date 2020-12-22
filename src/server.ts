@@ -2,11 +2,12 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import cors = require('cors')
 import { Mutex } from 'async-mutex';
-import errorMessages from './errorMessages';
-import Postage from './postage/Postage';
-import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder';
-import { Config, PriceFeederConfig } from './config';
-import { Log } from './log';
+import ErrorMessages from './ErrorMessages';
+import Postage from './Postage';
+import TokenPriceFeeder from './TokenPriceFeeder/TokenPriceFeeder';
+import { Config, PriceFeederConfig } from './Config';
+import { Log } from './Log';
+import BCHDNetwork from './Network/BCHDNetwork';
 
 
 const slpMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
@@ -41,6 +42,8 @@ app.use(cors());
 app.use(slpMiddleware);
 app.use(limiter);
 
+const network = new BCHDNetwork();
+
 const mutex = new Mutex();
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
@@ -50,12 +53,12 @@ app.get('/postage', function(req: express.Request, res: express.Response): void 
 app.post('/postage', async function(req: express.Request, res: express.Response): Promise<void> {
     try {
         if (! req.is('application/simpleledger-payment')) {
-            res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE);
+            res.status(400).send(ErrorMessages.UNSUPPORTED_CONTENT_TYPE);
             return;
         }
         const release = await mutex.acquire();
         try {
-            const postage = new Postage();
+            const postage = new Postage(network);
             // @ts-ignore
             const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw);
             res.status(200).send(serializedPaymentAck);
@@ -66,7 +69,7 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
         const msg = e.message || e.error || e;
         Log.error(msg);
 
-        if (Object.values(errorMessages).includes(e.message)) {
+        if (Object.values(ErrorMessages).includes(e.message)) {
             res.status(400).send(msg);
         } else {
             res.status(500).send(msg);
@@ -88,7 +91,7 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
     tokenPriceFeeder.run();
 });
 
-const postage = new Postage();
+const postage = new Postage(network);
 // @ts-ignore
 const cashAddress = postage.hdNode.privateKey.toAddress().toString();
 Log.info(`Send stamps to: ${cashAddress}`);

@@ -2,12 +2,12 @@
 import bitcore from 'bitcore-lib-cash'
 import chai from 'chai'
 
-import Transaction from '../src/transaction/Transaction'
-import errorMessages from '../src/errorMessages'
+import Transaction from '../src/Transaction'
+import ErrorMessages from '../src/ErrorMessages'
 
 import * as mockData from './mocks/transaction.mocks'
 
-import Config from './mocks/configMock'
+import config from './mocks/configMock'
 
 describe('#Transaction.ts', () => {
     let transaction: any = new Transaction()
@@ -48,7 +48,7 @@ describe('#Transaction.ts', () => {
                 transaction.getNeededStamps(transactionMockWithinvalidLokadIdOPReturn)
                 chai.assert.equal(true, false, 'Test failed. Unexpected result!')
             } catch (err) {
-                chai.assert.equal(err.message, errorMessages.INVALID_SLP_OP_RETURN)
+                chai.assert.equal(err.message, ErrorMessages.INVALID_SLP_OP_RETURN)
             }
         })
 
@@ -61,7 +61,7 @@ describe('#Transaction.ts', () => {
                 transaction.getNeededStamps(transactionMockWithNoPaymentToServer)
                 chai.assert.equal(true, false, 'Test failed. Unexpected result!')
             } catch (err) {
-                chai.assert.equal(err.message, errorMessages.INSUFFICIENT_POSTAGE)
+                chai.assert.equal(err.message, ErrorMessages.INSUFFICIENT_POSTAGE)
             }
         })
         it('should raise an error if the transaction uses a token that is not supported by the server', () => {
@@ -73,7 +73,7 @@ describe('#Transaction.ts', () => {
                 transaction.getNeededStamps(transactionMockWithUnsupportedToken)
                 chai.assert.equal(true, false, 'Test failed. Unexpected result!')
             } catch (err) {
-                chai.assert.equal(err.message, errorMessages.UNSUPPORTED_SLP_TOKEN)
+                chai.assert.equal(err.message, ErrorMessages.UNSUPPORTED_SLP_TOKEN)
             }
         })
         it('should return number of stamps requiered for the transaction', () => {

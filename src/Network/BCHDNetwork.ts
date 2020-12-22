@@ -1,12 +1,12 @@
 import bitcore from 'bitcore-lib-cash';
-import errorMessages from '../errorMessages';
+import errorMessages from '../ErrorMessages';
 import { GrpcClient } from 'grpc-bchrpc-node';
-import { Config } from './../config';
-import { Log } from './../log';
-import INetwork from './INetwork';
+import { Config } from './../Config';
+import { Log } from './../Log';
 import INetUtxo from './INetUtxo';
+import AbstractNetwork from './AbstractNetwork';
 
-export default class BCHDNetwork implements INetwork {
+export default class BCHDNetwork implements AbstractNetwork {
     static MIN_BYTES_INPUT = 181
 
     bchd: GrpcClient;

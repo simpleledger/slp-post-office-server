@@ -4,12 +4,15 @@ import * as sinon from 'sinon'
 
 import PaymentProtocol from 'bitcore-payment-protocol'
 
-import Postage from '../src/postage/Postage'
-import INetUtxo from '../src/network/INetUtxo'
-import BCHDNetwork from '../src/network/BCHDNetwork'
+import Postage from '../src/Postage'
+import INetUtxo from '../src/Network/INetUtxo'
+import BCHDNetwork from '../src/Network/BCHDNetwork'
 import * as mockData from './mocks/postage.mocks'
 
 import Config from './mocks/configMock'
+
+// TODO make this non-global
+const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
 
 describe('#Postage.ts', () => {
     let postage: Postage
@@ -17,7 +20,17 @@ describe('#Postage.ts', () => {
 
     beforeEach(() => {
         sandbox = sinon.createSandbox()
-        postage = new Postage()
+
+        const bchdNetworkMock = sandbox.createStubInstance(BCHDNetwork, {
+            validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
+            broadcastTransaction: sandbox.stub().resolves(transactionId) as
+                | Promise<any>
+                | sinon.SinonStub<[any], Promise<any>>,
+            fetchUTXOsForNumberOfStampsNeeded: sandbox.stub().resolves(mockData.stampsMock) as
+                | Promise<any>
+                | sinon.SinonStub<[number, string], Promise<any>>,
+        })
+        postage = new Postage(bchdNetworkMock)
     })
 
     afterEach(() => {
@@ -26,7 +39,6 @@ describe('#Postage.ts', () => {
 
     describe('#addStampsToTxAndBroadcast', () => {
         it('should add stamps to transaction and broadcast it to the network', async () => {
-            const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
             // sandbox.stub(postage.network, 'validateSLPInputs').resolves() as
             //     | Promise<any>
             //     | sinon.SinonStub<[any], Promise<void>>
@@ -36,27 +48,6 @@ describe('#Postage.ts', () => {
             // sandbox.stub(postage.network, 'fetchUTXOsForNumberOfStampsNeeded').resolves(mockData.stampsMock) as
             //     | Promise<any>
             //     | sinon.SinonStub<[number, string], Promise<any>>
-
-            const bitboxNetworkMock = sandbox.createStubInstance(BCHDNetwork, {
-                validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
-                broadcastTransaction: sandbox.stub().resolves(transactionId) as
-                    | Promise<any>
-                    | sinon.SinonStub<[any], Promise<any>>,
-                fetchUTXOsForNumberOfStampsNeeded: sandbox.stub().resolves(mockData.stampsMock) as
-                    | Promise<any>
-                    | sinon.SinonStub<[number, string], Promise<any>>,
-            })
-
-            const bchdNetworkMock = sandbox.createStubInstance(BCHDNetwork, {
-                validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
-                broadcastTransaction: sandbox.stub().resolves(transactionId) as
-                    | Promise<any>
-                    | sinon.SinonStub<[any], Promise<any>>,
-                fetchUTXOsForNumberOfStampsNeeded: sandbox.stub().resolves(mockData.stampsMock) as
-                    | Promise<any>
-                    | sinon.SinonStub<[number, string], Promise<any>>,
-            })
-            postage.network = bchdNetworkMock
 
             const rawIncomingPayment = Buffer.from(
                 '12a8020100000001ca6193753fe1e19d89c8785b89bd7bfd0f37efbd0037a27e2126e' +
@@ -83,8 +74,6 @@ describe('#Postage.ts', () => {
     })
     describe('#generateStamps', () => {
         it('should attempt to generate and broadcast new stamps', async () => {
-            const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
-
             const networkMock = sandbox.createStubInstance(BCHDNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
@@ -102,8 +91,6 @@ describe('#Postage.ts', () => {
         })
 
         it('should not broadcast anything if server had no balance', async () => {
-            const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
-
             const networkMock = sandbox.createStubInstance(BCHDNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>

@@ -6,10 +6,10 @@ import PaymentProtocol from 'bitcore-payment-protocol'
 
 import Postage from '../src/postage/Postage'
 import INetUtxo from '../src/network/INetUtxo'
-import BITBOXNetwork from '../src/network/BITBOXNetwork'
 import BCHDNetwork from '../src/network/BCHDNetwork'
-import mockConfig from './mocks/config.mock.json'
 import * as mockData from './mocks/postage.mocks'
+
+import Config from './mocks/configMock'
 
 describe('#Postage.ts', () => {
     let postage: Postage
@@ -17,19 +17,11 @@ describe('#Postage.ts', () => {
 
     beforeEach(() => {
         sandbox = sinon.createSandbox()
-        postage = new Postage(mockConfig)
+        postage = new Postage()
     })
 
     afterEach(() => {
         sandbox.restore()
-    })
-
-    describe('#getRates', () => {
-        it('should return the rate provided by the config', async () => {
-            const rate = postage.getRates()
-
-            chai.assert.equal(rate, mockConfig.postageRate)
-        })
     })
 
     describe('#addStampsToTxAndBroadcast', () => {
@@ -45,7 +37,7 @@ describe('#Postage.ts', () => {
             //     | Promise<any>
             //     | sinon.SinonStub<[number, string], Promise<any>>
 
-            const bitboxNetworkMock = sandbox.createStubInstance(BITBOXNetwork, {
+            const bitboxNetworkMock = sandbox.createStubInstance(BCHDNetwork, {
                 validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
@@ -93,7 +85,7 @@ describe('#Postage.ts', () => {
         it('should attempt to generate and broadcast new stamps', async () => {
             const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
 
-            const networkMock = sandbox.createStubInstance(BITBOXNetwork, {
+            const networkMock = sandbox.createStubInstance(BCHDNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
                     | sinon.SinonStub<[any], Promise<any>>,
@@ -112,7 +104,7 @@ describe('#Postage.ts', () => {
         it('should not broadcast anything if server had no balance', async () => {
             const transactionId = '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5'
 
-            const networkMock = sandbox.createStubInstance(BITBOXNetwork, {
+            const networkMock = sandbox.createStubInstance(BCHDNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
                     | Promise<any>
                     | sinon.SinonStub<[any], Promise<any>>,

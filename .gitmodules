@@ -1,3 +1,6 @@
 [submodule "bitcore"]
 	path = bitcore
 	url = https://github.com/OPReturnCode/bitcore.git
+[submodule "DefinitelyTyped"]
+	path = DefinitelyTyped
+	url = https://github.com/DefinitelyTyped/DefinitelyTyped.git

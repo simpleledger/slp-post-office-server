@@ -3,7 +3,6 @@ interface IPostageConstructor {
 }
 
 export default interface IPostage {
-    getRates: () => any;
-    addStampsToTxAndBroadcast: (rawIncomingPayment: any) => any;
+    addStampsToTxAndBroadcast: (rawIncomingPayment: Buffer) => any;
     generateStamps: () => void;
 }

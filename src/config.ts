@@ -1,18 +1,46 @@
 require('dotenv').config()
 
-import CoinFlexFLEXApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
-import BitcoinComSpiceApiWrapper from './tokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
-import CoinexUSDTApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
+import { BigNumber } from 'bignumber.js';
+
+// import CoinFlexFLEXApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
+// import BitcoinComSpiceApiWrapper from './tokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
+// import CoinexUSDTApiWrapper from './tokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
+
+export interface StampConfig {
+    name: string;
+    symbol: string;
+    tokenId: string;
+    decimals: number;
+    rate: BigNumber;
+}
+
+export interface PostageConfig {
+    mnemonic: string;
+    network: string;
+    postageRate: {
+        version: number;
+        address: string;
+        weight: number;
+        transactionttl: number;
+        stamps: StampConfig[];
+    };
+}
+
+export interface PriceFeederConfig {
+    tokenId: string;
+    feederClass: any; // TODO make better typed
+    useInitialStampRateAsMin: boolean;
+}
 
 export class Config {
     static server = {
-        port: process.env.SERVER_PORT ? process.env.SERVER_PORT : 3000,
+        port: Number(process.env.SERVER_PORT ? process.env.SERVER_PORT : 3000),
         host: process.env.SERVER_HOST ? process.env.SERVER_HOST : '0.0.0.0',
     }
     static bchd = {
         server: process.env.BCHD_SERVER,
     }
-    static postage = {
+    static postage: PostageConfig = {
         mnemonic: process.env.MNEMONIC,
         network: process.env.NETWORK,
         postageRate: {
@@ -26,12 +54,12 @@ export class Config {
                     symbol: "SPICE",
                     tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
                     decimals: 8,
-                    rate: 10
+                    rate: new BigNumber(10)
                 }
             ]
         }
     }
-    static priceFeeders = [
+    static priceFeeders: PriceFeederConfig[] = [
         /*
         // FLEX / coinflex.com
         {

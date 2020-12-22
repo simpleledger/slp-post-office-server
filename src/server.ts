@@ -1,12 +1,34 @@
-import express = require('express')
+import express from 'express'
 import cors = require('cors')
 import { Mutex } from 'async-mutex'
-import slpMiddleware from './slpMiddleware'
 import errorMessages from './errorMessages'
 import Postage from './postage/Postage'
 import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder'
-import { Config } from './config'
+import { Config, PriceFeederConfig } from './config'
 import { log } from './logger';
+
+
+const slpMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    if (! req.is('application/simpleledger-payment')) {
+        return next();
+    }
+
+    const data: Buffer[] = [];
+
+    req.on('data', chunk => {
+        data.push(chunk)
+    });
+
+    req.on('end', () => {
+        if (data.length <= 0) {
+            return next()
+        }
+        const endData = Buffer.concat(data)
+        // @ts-ignore
+        req.raw = endData
+        next()
+    });
+}
 
 const app: express.Application = express()
 app.use(cors())
@@ -14,11 +36,10 @@ app.use(slpMiddleware)
 const mutex = new Mutex()
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
-    const postage = new Postage()
-    res.send(postage.getRates())
+    res.send(Config.postage.postageRate)
 })
 
-app.post('/postage', async function(req: any, res: express.Response) {
+app.post('/postage', async function(req: express.Request, res: express.Response): Promise<void> {
     try {
         if (!req.is('application/simpleledger-payment')) {
             res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE)
@@ -27,6 +48,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
         const release = await mutex.acquire()
         try {
             const postage = new Postage()
+            // @ts-ignore
             const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw)
             res.status(200).send(serializedPaymentAck)
         } finally {
@@ -46,7 +68,7 @@ app.post('/postage', async function(req: any, res: express.Response) {
  * INITIALIZE SERVER
  */
 
-Config.priceFeeders.forEach(priceFeeder => {
+Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
     const tokenPriceFeeder = new TokenPriceFeeder(
         100,
         priceFeeder.tokenId,
@@ -56,7 +78,8 @@ Config.priceFeeders.forEach(priceFeeder => {
     tokenPriceFeeder.run()
 })
 
-const postage = new Postage(Config)
+const postage = new Postage()
+// @ts-ignore
 const cashAddress = postage.hdNode.privateKey.toAddress().toString()
 log.info(`Send stamps to: ${cashAddress}`)
 
@@ -69,12 +92,12 @@ const server = app.listen(Config.server.port, Config.server.host, async () => {
 })
 
 let connections = [];
-server.on('connection', connection => {
+server.on('connection', (connection): void => {
     connections.push(connection);
     connection.on('close', () => connections = connections.filter(curr => curr !== connection));
 });
 
-function shutDown() {
+function shutDown(): void {
     log.info('Received kill signal, shutting down gracefully');
     server.close(() => {
         log.info('Closed out remaining connections');

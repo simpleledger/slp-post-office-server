@@ -3,7 +3,7 @@ import bitcore from 'bitcore-lib-cash'
 import * as bchaddr from 'bchaddrjs-slp'
 import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
-const { TransactionBuilder, ECSignature } = require('bitcoincashjs-lib')
+import INetUtxo from '../network/INetUtxo';
 import { Config } from './../config'
 import { log } from './../logger';
 
@@ -14,47 +14,7 @@ export default class Transaction implements ITransaction {
     static LOKAD_ID_INDEX_VALUE = '534c5000'
     static SLP_OP_RETURN_VOUT = 0
 
-    addStampsForTransactionAndSignInputs(transaction: any, hdNode: any, stamps: any): any {
-
-        // the transaction inputs don't contain all the data needed so add them again
-        // const transactionInputs = transaction.inputs
-        // transaction.inputs = []
-        // transactionInputs.forEach((input, index) => {
-        //     let pubKeyHashOutput = new bitcore.Script.buildPublicKeyOut(
-        //         new bitcore.PublicKey(input.script.chunks[1].buf.toString('hex'))
-        //     )
-        //     transaction.addInput(new bitcore.Transaction.Input.PublicKeyHash({
-        //         outout: new bitcore.Transaction.Output({
-        //             script: pubKeyHashOutput.toBuffer(),
-        //             satoshis: 546, // TODO
-        //         }),
-        //         outputIndex: input.outputIndex,
-        //         prevTxId: input.prevTxId,
-        //         script: input.script.toBuffer(),
-        //         sequenceNumber: input.sequenceNumber
-        //     }))
-        // });
-        // let signedInputs = transaction.inputs;
-        // transaction.inputs = [];
-
-        // signedInputs.forEach((input, index) => {
-        //     let pubKeyHashOutput = new bitcore.Script.buildPublicKeyOut(new bitcore.PublicKey(input.script.chunks[1].buf.toString("hex")));
-        //     transaction.addInput(
-        //         new bitcore.Transaction.Input.PublicKeyHash(
-        //             {
-        //                 output: new bitcore.Transaction.Output({
-        //                     script: pubKeyHashOutput.toBuffer(),
-        //                     satoshis: 546,  // We assume this for now, but should look it up in future
-        //                 }),
-        //                 outputIndex: input.outputIndex,
-        //                 prevTxId: input.prevTxId,
-        //                 script: input.script.toBuffer(),
-        //                 sequenceNumber: input.sequenceNumber,
-        //             }
-        //         )
-        //     );
-        // });
-
+    addStampsForTransactionAndSignInputs(transaction: bitcore.Transaction, hdNode: bitcore.HDPrivateKey, stamps: INetUtxo[]): bitcore.Transaction {
         const lastSlpInputVin = transaction.inputs.length - 1
         for (let i = 0; i < stamps.length; i++) {
             const stamp = stamps[i]
@@ -81,7 +41,7 @@ export default class Transaction implements ITransaction {
         return transaction
     }
 
-    getNeededStamps(transaction: any): number {
+    getNeededStamps(transaction: bitcore.Transaction): number {
         BigNumber.set({ ROUNDING_MODE: BigNumber.ROUND_UP })
         const transactionScript = transaction.outputs[Transaction.SLP_OP_RETURN_VOUT].script.toASM().split(' ')
         if (transactionScript[Transaction.LOKAD_ID_INDEX] !== Transaction.LOKAD_ID_INDEX_VALUE)
@@ -93,7 +53,7 @@ export default class Transaction implements ITransaction {
             const addressFromOut = bchaddr.toSlpAddress(
                 transaction.outputs[i].script.toAddress().toString()
             )
-            const postOfficeAddress = Config.postageRate.address
+            const postOfficeAddress = Config.postage.postageRate.address
             if (postOfficeAddress === addressFromOut) tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i
         }
         if (tokenOutputPostage === 0) throw new Error(errorMessages.INSUFFICIENT_POSTAGE)
@@ -102,7 +62,7 @@ export default class Transaction implements ITransaction {
         // Check if postage is being paid accordingly
         const postagePaymentTokenId = transactionScript[Transaction.TOKEN_ID_INDEX]
         const stampDetails =
-            Config.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
+            Config.postage.postageRate.stamps.filter(stamp => stamp.tokenId === postagePaymentTokenId).pop() || false
         const minimumStampsNeeded = transaction.outputs.length - transaction.inputs.length + 1
         if (stampDetails) {
             const stampRate = new BigNumber(stampDetails.rate).times(10 ** stampDetails.decimals)
@@ -120,10 +80,10 @@ export default class Transaction implements ITransaction {
         return neededStamps
     }
 
-    splitUtxosIntoStamps(utxos: any, hdNode: any): Buffer {
-        const address = hdNode.privateKey.toAddress()
+    splitUtxosIntoStamps(utxos: INetUtxo[], hdNode: bitcore.HDPrivateKey): Buffer {
+        const address: bitcore.Address = hdNode.privateKey.toAddress()
 
-        const unspentOutputs = []
+        const unspentOutputs: bitcore.Transaction.UnspentOutput[] = [];
         utxos.forEach(element => {
             const unspentOutput = new bitcore.Transaction.UnspentOutput({
                 txid: element.tx_hash,
@@ -133,9 +93,9 @@ export default class Transaction implements ITransaction {
             })
             unspentOutputs.push(unspentOutput)
         });
-        const transaction = new bitcore.Transaction().from(unspentOutputs)
+        const transaction = (new bitcore.Transaction()).from(unspentOutputs)
 
-        const stampSize = Config.postageRate.weight + Transaction.MIN_BYTES_INPUT
+        const stampSize = Config.postage.postageRate.weight + Transaction.MIN_BYTES_INPUT
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0)
         let numberOfPossibleStamps = Math.floor(originalAmount / stampSize)
@@ -147,13 +107,17 @@ export default class Transaction implements ITransaction {
         
         transaction.feePerByte(1)
         for(let i=0; i < numberOfPossibleStamps; i++){
+            // @ts-ignore
             let fee = transaction._estimateSize()
+            // @ts-ignore
             let unspentValue = transaction._getUnspentValue()
             if (unspentValue - fee > stampSize + 34) {
                 transaction.to(address, stampSize)
             }
             if (i == numberOfPossibleStamps - 1){
+                // @ts-ignore
                 fee = transaction._estimateSize()
+                // @ts-ignore
                 unspentValue = transaction._getUnspentValue()
                 if (unspentValue - fee > 546 + 34) {
                     transaction.change(address)
@@ -163,15 +127,5 @@ export default class Transaction implements ITransaction {
         transaction.sign(hdNode.privateKey)
         
         return Buffer.from(transaction.serialize(), 'hex')
-    }
-
-    buildTransaction(incomingTransaction: any, stamps: any, hdNode: any): Buffer {
-        // const newTransaction = TransactionBuilder.fromTransaction(incomingTransaction, this.config.network)
-        // const txBuf = this.addStampsForTransactionAndSignInputs(newTransaction, hdNode, stamps)
-        //     .build()
-        //     .toBuffer()
-        const txBuf = this.addStampsForTransactionAndSignInputs(incomingTransaction, hdNode, stamps)
-            .toBuffer()
-        return txBuf
     }
 }

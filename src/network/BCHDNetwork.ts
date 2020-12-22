@@ -1,3 +1,4 @@
+import bitcore from 'bitcore-lib-cash'
 import errorMessages from '../errorMessages'
 import { GrpcClient } from 'grpc-bchrpc-node'
 import { Config } from './../config'
@@ -8,7 +9,7 @@ import INetUtxo from './INetUtxo'
 export default class BCHDNetwork implements INetwork {
     static MIN_BYTES_INPUT = 181
 
-    bchd: any
+    bchd: GrpcClient;
 
     constructor() {
         this.bchd = new GrpcClient({ url: Config.bchd.server })
@@ -88,8 +89,8 @@ export default class BCHDNetwork implements INetwork {
         return utxos.slice(0, numberOfStamps)
     }
 
-    async validateSLPInputs(inputs: any): Promise<void> {
-        // TODO do we need this for bchd?
+    async validateSLPInputs(inputs: bitcore.Transaction.Input[]): Promise<void> {
+        // bchd already provides us slp valid inputs
     }
 
     async broadcastTransaction(rawTransaction: Buffer): Promise<string> {

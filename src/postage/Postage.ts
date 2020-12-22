@@ -8,25 +8,23 @@ import Transaction from './../transaction/Transaction'
 import INetwork from './../network/INetwork'
 import BCHDNetwork from './../network/BCHDNetwork'
 import IPostage from './IPostage'
+import INetUtxo from '../network/INetUtxo';
 
 export default class Postage implements IPostage {
     network: INetwork
     transaction: Transaction
-    hdNode: any
+    hdNode: bitcore.HDPrivateKey;
 
     constructor() {
         this.network = new BCHDNetwork()
-        this.transaction = new Transaction(Config.postage)
+        this.transaction = new Transaction()
 
         const code = new Mnemonic(Config.postage.mnemonic)
         this.hdNode = code.toHDPrivateKey()
     }
 
-    getRates(): any {
-        return Config.postage.postageRate
-    }
-
     async addStampsToTxAndBroadcast(rawIncomingPayment: Buffer): Promise<any> {
+        // @ts-ignore
         const cashAddress = this.hdNode.privateKey.toAddress().toString()
 
         const paymentProtocol = new PaymentProtocol('BCH')
@@ -36,19 +34,21 @@ export default class Postage implements IPostage {
         // TODO this doesn't do what is expected
         // await this.network.validateSLPInputs(incomingTransaction.ins)
 
-        const neededStampsForTransaction = this.transaction.getNeededStamps(incomingTransactionBitcore)
-        const stamps = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTransaction, cashAddress)
-        const stampedTransaction = this.transaction.buildTransaction(incomingTransactionBitcore, stamps, this.hdNode)
-        const transactionId = await this.network.broadcastTransaction(stampedTransaction)
+        const neededStampsForTransaction: number = this.transaction.getNeededStamps(incomingTransactionBitcore)
+        const stamps: INetUtxo[] = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTransaction, cashAddress)
+        const stampedTransaction: bitcore.Transaction = this.transaction.addStampsForTransactionAndSignInputs(incomingTransactionBitcore, this.hdNode, stamps);
+        const txBuf = stampedTransaction.toBuffer();
+        const transactionId: string = await this.network.broadcastTransaction(txBuf);
 
         const memo = `Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${transactionId}`
-        payment.transactions[0] = stampedTransaction
+        payment.transactions[0] = txBuf
         const paymentAck = paymentProtocol.makePaymentACK({ payment, memo }, 'BCH')
 
         return paymentAck.serialize()
     }
 
     async generateStamps(): Promise<void> {
+        // @ts-ignore
         const cashAddress = this.hdNode.privateKey.toAddress().toString()
 
         log.info('Generating stamps...')

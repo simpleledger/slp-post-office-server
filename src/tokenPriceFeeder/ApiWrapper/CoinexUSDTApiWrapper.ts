@@ -1,6 +1,5 @@
 import HttpClient from './HttpClient'
 import IApiWrapper from './IApiWrapper'
-import { AxiosResponse } from 'axios'
 import { log } from './../../logger';
 
 export default class CoinexUSDTApiWrapper extends HttpClient implements IApiWrapper {

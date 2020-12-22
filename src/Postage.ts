@@ -40,10 +40,8 @@ export default class Postage implements IPostage {
         const txBuf: Buffer = stampedTransaction.toBuffer();
         const txId: string = await this.network.broadcastTransaction(txBuf);
 
-        // TODO need better memo
-        const memo = `Transaction Broadcasted: https://explorer.bitcoin.com/bch/tx/${txId}`;
         payment.transactions[0] = txBuf;
-        const paymentAck = paymentProtocol.makePaymentACK({ payment, memo }, 'BCH');
+        const paymentAck = paymentProtocol.makePaymentACK({ payment, memo: Config.postage.memo }, 'BCH');
 
         return paymentAck.serialize();
     }

@@ -17,6 +17,7 @@ export interface StampConfig {
 export interface PostageConfig {
     mnemonic: string;
     network: string;
+    memo: string;
     postageRate: {
         version: number;
         address: string;
@@ -45,6 +46,7 @@ export class Config {
     static postage: PostageConfig = {
         mnemonic: process.env.MNEMONIC,
         network: process.env.NETWORK,
+        memo: process.env.MEMO,
         postageRate: {
             version: 1,
             address: process.env.ADDRESS,

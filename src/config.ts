@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config();
 
 import { BigNumber } from 'bignumber.js';
 

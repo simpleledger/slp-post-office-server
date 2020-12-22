@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 declare module 'axios' {
     interface AxiosResponse<T = any> extends Promise<T> {}
@@ -12,7 +12,7 @@ export default abstract class HttpClient {
             baseURL,
         });
 
-        this._initializeResponseInterceptor()
+        this._initializeResponseInterceptor();
     }
 
     private _initializeResponseInterceptor = (): void => {

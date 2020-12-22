@@ -1,5 +1,5 @@
-import bitcore from 'bitcore-lib-cash'
-import INetUtxo from './INetUtxo'
+import bitcore from 'bitcore-lib-cash';
+import INetUtxo from './INetUtxo';
 
 export default interface INetwork {
     fetchUTXOsForStampGeneration: (cashAddress: string) => Promise<INetUtxo[]>;

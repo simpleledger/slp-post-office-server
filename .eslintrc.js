@@ -19,5 +19,6 @@ module.exports = {
     "@typescript-eslint/camelcase": OFF,
     "@typescript-eslint/no-inferrable-types": OFF,
     "@typescript-eslint/ban-ts-ignore": WARN,
+    "semi": [OFF, "always"],
   }
 };

@@ -1,10 +1,10 @@
-import express from 'express'
+import express from 'express';
 import cors = require('cors')
-import { Mutex } from 'async-mutex'
-import errorMessages from './errorMessages'
-import Postage from './postage/Postage'
-import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder'
-import { Config, PriceFeederConfig } from './config'
+import { Mutex } from 'async-mutex';
+import errorMessages from './errorMessages';
+import Postage from './postage/Postage';
+import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder';
+import { Config, PriceFeederConfig } from './config';
 import { Log } from './log';
 
 
@@ -16,53 +16,53 @@ const slpMiddleware = (req: express.Request, res: express.Response, next: expres
     const data: Buffer[] = [];
 
     req.on('data', chunk => {
-        data.push(chunk)
+        data.push(chunk);
     });
 
     req.on('end', () => {
         if (data.length <= 0) {
-            return next()
+            return next();
         }
-        const endData = Buffer.concat(data)
+        const endData = Buffer.concat(data);
         // @ts-ignore
-        req.raw = endData
-        next()
+        req.raw = endData;
+        next();
     });
-}
+};
 
-const app: express.Application = express()
-app.use(cors())
-app.use(slpMiddleware)
-const mutex = new Mutex()
+const app: express.Application = express();
+app.use(cors());
+app.use(slpMiddleware);
+const mutex = new Mutex();
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
-    res.send(Config.postage.postageRate)
-})
+    res.send(Config.postage.postageRate);
+});
 
 app.post('/postage', async function(req: express.Request, res: express.Response): Promise<void> {
     try {
         if (!req.is('application/simpleledger-payment')) {
-            res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE)
-            return
+            res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE);
+            return;
         }
-        const release = await mutex.acquire()
+        const release = await mutex.acquire();
         try {
-            const postage = new Postage()
+            const postage = new Postage();
             // @ts-ignore
-            const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw)
-            res.status(200).send(serializedPaymentAck)
+            const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw);
+            res.status(200).send(serializedPaymentAck);
         } finally {
-            release()
+            release();
         }
     } catch (e) {
-        Log.error(e)
+        Log.error(e);
         if (Object.values(errorMessages).includes(e.message)) {
-            res.status(400).send(e.message)
+            res.status(400).send(e.message);
         } else {
-            res.status(500).send(e.message)
+            res.status(500).send(e.message);
         }
     }
-})
+});
 
 /*
  * INITIALIZE SERVER
@@ -74,22 +74,22 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
         priceFeeder.tokenId,
         new priceFeeder.feederClass(),
         priceFeeder.useInitialStampRateAsMin
-    )
-    tokenPriceFeeder.run()
-})
+    );
+    tokenPriceFeeder.run();
+});
 
-const postage = new Postage()
+const postage = new Postage();
 // @ts-ignore
-const cashAddress = postage.hdNode.privateKey.toAddress().toString()
-Log.info(`Send stamps to: ${cashAddress}`)
+const cashAddress = postage.hdNode.privateKey.toAddress().toString();
+Log.info(`Send stamps to: ${cashAddress}`);
 
 const stampGenerationIntervalInMinutes = 30;
-setInterval(postage.generateStamps, 1000 * 60 * stampGenerationIntervalInMinutes)
+setInterval(postage.generateStamps, 1000 * 60 * stampGenerationIntervalInMinutes);
 postage.generateStamps();
 
 const server = app.listen(Config.server.port, Config.server.host, async () => {
     Log.info(`Post Office listening ${Config.server.host}:${Config.server.port}`);
-})
+});
 
 let connections = [];
 server.on('connection', (connection): void => {

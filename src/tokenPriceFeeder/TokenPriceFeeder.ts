@@ -1,6 +1,6 @@
-import { Config } from './../config'
-import BigNumber from 'bignumber.js'
-import IApiWrapper from './ApiWrapper/IApiWrapper'
+import { Config } from './../config';
+import BigNumber from 'bignumber.js';
+import IApiWrapper from './ApiWrapper/IApiWrapper';
 
 export default class TokenPriceFeeder {
     private tickInSeconds: number
@@ -11,8 +11,8 @@ export default class TokenPriceFeeder {
     private _applyCustomRule: (price: number) => number
 
     private _applyDefaultRule(price: number): number {
-        const minerFeeInUSD = 0.01
-        return price * minerFeeInUSD
+        const minerFeeInUSD = 0.01;
+        return price * minerFeeInUSD;
     }
 
     public constructor(
@@ -22,15 +22,15 @@ export default class TokenPriceFeeder {
         useInitialStampRateAsMin: boolean = false,
         applyCustomRule?: (price: number) => number
         ) {
-            this.tickInSeconds = tickInSeconds
-            this.tokenId = tokenId
-            this.apiWrapper = apiWrapper
-            this._applyCustomRule = applyCustomRule
-            this.useInitialStampRateAsMin = useInitialStampRateAsMin
+            this.tickInSeconds = tickInSeconds;
+            this.tokenId = tokenId;
+            this.apiWrapper = apiWrapper;
+            this._applyCustomRule = applyCustomRule;
+            this.useInitialStampRateAsMin = useInitialStampRateAsMin;
 
             Config.postage.postageRate.stamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {
-                    this.initialStampRate = new BigNumber(stamp.rate)
+                    this.initialStampRate = new BigNumber(stamp.rate);
                 }
             });
 
@@ -38,29 +38,29 @@ export default class TokenPriceFeeder {
 
     public async run(): Promise<void> {
         setInterval(async () => {
-            const priceData = await this.apiWrapper.getPrice()
-            const currentStamps = Config.postage.postageRate.stamps
+            const priceData = await this.apiWrapper.getPrice();
+            const currentStamps = Config.postage.postageRate.stamps;
 
             currentStamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {
-                    let price: number
+                    let price: number;
                     if (this._applyCustomRule) {
-                        price = this._applyCustomRule(priceData)
+                        price = this._applyCustomRule(priceData);
                     } else {
-                        price = this._applyDefaultRule(priceData)
+                        price = this._applyDefaultRule(priceData);
                     }
-                    let newStampRate: BigNumber = new BigNumber(price).times(10 ** stamp.decimals)
+                    let newStampRate: BigNumber = new BigNumber(price).times(10 ** stamp.decimals);
 
                     if (this.useInitialStampRateAsMin) {
                         if (newStampRate.lt(this.initialStampRate)) {
-                            newStampRate = this.initialStampRate
+                            newStampRate = this.initialStampRate;
                         }
                     }
 
-                    stamp.rate = newStampRate  
+                    stamp.rate = newStampRate;  
                 }
             });
             
-        }, this.tickInSeconds * 1000)
+        }, this.tickInSeconds * 1000);
     }
 }

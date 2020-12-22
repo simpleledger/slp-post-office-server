@@ -1,4 +1,4 @@
-import bitcore from 'bitcore-lib-cash'
+import bitcore from 'bitcore-lib-cash';
 import INetUtxo from '../network/INetUtxo';
 
 interface ITransactionConstructor {

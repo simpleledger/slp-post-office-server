@@ -8,5 +8,5 @@ interface ITransactionConstructor {
 export default interface ITransaction {
     addStampsForTransactionAndSignInputs: (transaction: bitcore.Transaction, hdNode: bitcore.HDPrivateKey, stamps: INetUtxo[]) => bitcore.Transaction;
     getNeededStamps: (transaction: bitcore.Transaction) => number;
-    splitUtxosIntoStamps: (utxos: INetUtxo[], hdNode: bitcore.HDPrivateKey) => Buffer;
+    splitUtxosIntoStamps: (utxos: INetUtxo[], hdNode: bitcore.HDPrivateKey) => bitcore.Transaction;
 }

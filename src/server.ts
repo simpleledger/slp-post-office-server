@@ -49,7 +49,7 @@ app.get('/postage', function(req: express.Request, res: express.Response): void 
 
 app.post('/postage', async function(req: express.Request, res: express.Response): Promise<void> {
     try {
-        if (!req.is('application/simpleledger-payment')) {
+        if (! req.is('application/simpleledger-payment')) {
             res.status(400).send(errorMessages.UNSUPPORTED_CONTENT_TYPE);
             return;
         }
@@ -63,11 +63,13 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
             release();
         }
     } catch (e) {
-        Log.error(e);
+        const msg = e.message || e.error || e;
+        Log.error(msg);
+
         if (Object.values(errorMessages).includes(e.message)) {
-            res.status(400).send(e.message);
+            res.status(400).send(msg);
         } else {
-            res.status(500).send(e.message);
+            res.status(500).send(msg);
         }
     }
 });

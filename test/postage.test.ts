@@ -5,7 +5,6 @@ import * as sinon from 'sinon'
 import PaymentProtocol from 'bitcore-payment-protocol'
 
 import Postage from '../src/Postage'
-import INetUtxo from '../src/Network/INetUtxo'
 import BCHDNetwork from '../src/Network/BCHDNetwork'
 import * as mockData from './mocks/postage.mocks'
 
@@ -69,7 +68,6 @@ describe('#Postage.ts', () => {
             const payment = new PaymentProtocol().makePayment(paymentBody)
 
             chai.assert.equal(payment.get('memo'), 'Unit Test')
-            chai.assert.include(paymentACK.get('memo'), transactionId)
         })
     })
     describe('#generateStamps', () => {

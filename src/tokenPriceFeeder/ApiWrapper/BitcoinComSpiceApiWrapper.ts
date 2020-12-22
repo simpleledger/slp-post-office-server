@@ -1,6 +1,6 @@
 import HttpClient from './HttpClient'
 import IApiWrapper from './IApiWrapper'
-import { log } from './../../logger';
+import { Log } from './../../log';
 
 export default class BitcoinComSpiceApiWrapper extends HttpClient implements IApiWrapper {
     public constructor() {
@@ -12,7 +12,7 @@ export default class BitcoinComSpiceApiWrapper extends HttpClient implements IAp
             const res = await this.instance.get('');
             return res.high;
         } catch(e) {
-            log.error(`Error while trying to get price data from exchange.bitcoin.com: ${e.message}`)
+            Log.error(`Error while trying to get price data from exchange.bitcoin.com: ${e.message}`)
         }
     }
     

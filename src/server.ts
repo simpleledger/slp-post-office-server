@@ -5,7 +5,7 @@ import errorMessages from './errorMessages'
 import Postage from './postage/Postage'
 import TokenPriceFeeder from './tokenPriceFeeder/TokenPriceFeeder'
 import { Config, PriceFeederConfig } from './config'
-import { log } from './logger';
+import { Log } from './log';
 
 
 const slpMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
@@ -55,7 +55,7 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
             release()
         }
     } catch (e) {
-        log.error(e)
+        Log.error(e)
         if (Object.values(errorMessages).includes(e.message)) {
             res.status(400).send(e.message)
         } else {
@@ -81,14 +81,14 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
 const postage = new Postage()
 // @ts-ignore
 const cashAddress = postage.hdNode.privateKey.toAddress().toString()
-log.info(`Send stamps to: ${cashAddress}`)
+Log.info(`Send stamps to: ${cashAddress}`)
 
 const stampGenerationIntervalInMinutes = 30;
 setInterval(postage.generateStamps, 1000 * 60 * stampGenerationIntervalInMinutes)
 postage.generateStamps();
 
 const server = app.listen(Config.server.port, Config.server.host, async () => {
-    log.info(`Post Office listening ${Config.server.host}:${Config.server.port}`);
+    Log.info(`Post Office listening ${Config.server.host}:${Config.server.port}`);
 })
 
 let connections = [];
@@ -98,14 +98,14 @@ server.on('connection', (connection): void => {
 });
 
 function shutDown(): void {
-    log.info('Received kill signal, shutting down gracefully');
+    Log.info('Received kill signal, shutting down gracefully');
     server.close(() => {
-        log.info('Closed out remaining connections');
+        Log.info('Closed out remaining connections');
         process.exit(0);
     });
 
     setTimeout(() => {
-        log.error('Could not close connections in time, forcefully shutting down');
+        Log.error('Could not close connections in time, forcefully shutting down');
         process.exit(1);
     }, 10000);
 

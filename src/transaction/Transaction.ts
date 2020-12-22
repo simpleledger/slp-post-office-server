@@ -5,7 +5,7 @@ import BigNumber from 'bignumber.js'
 import ITransaction from './ITransaction'
 import INetUtxo from '../network/INetUtxo';
 import { Config } from './../config'
-import { log } from './../logger';
+import { Log } from './../log';
 
 export default class Transaction implements ITransaction {
     static MIN_BYTES_INPUT = 181
@@ -33,7 +33,7 @@ export default class Transaction implements ITransaction {
         }
 
         for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
-            log.debug(`Signing... ${i}`)
+            Log.debug(`Signing... ${i}`)
             const signature = transaction.inputs[i].getSignatures(transaction, hdNode.privateKey, i)[0]
             transaction.applySignature(signature)
         }

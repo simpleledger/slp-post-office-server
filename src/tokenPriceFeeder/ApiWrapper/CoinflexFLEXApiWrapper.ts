@@ -1,6 +1,6 @@
 import HttpClient from './HttpClient'
 import IApiWrapper from './IApiWrapper'
-import { log } from './../../logger';
+import { Log } from './../../log';
 
 export default class CoinFlexFLEXApiWrapper extends HttpClient implements IApiWrapper {
     public constructor() {
@@ -13,7 +13,7 @@ export default class CoinFlexFLEXApiWrapper extends HttpClient implements IApiWr
             const flexUsdTokenData = coinFlexResponse.filter(item => item.marketCode === 'FLEX-USD').pop()
             return flexUsdTokenData.markPrice
         } catch(e) {
-            log.error(`Error while trying to get price data from CoinFlex: ${e.message}`)
+            Log.error(`Error while trying to get price data from CoinFlex: ${e.message}`)
         }
     }
     

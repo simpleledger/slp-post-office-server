@@ -20,5 +20,6 @@ module.exports = {
     "@typescript-eslint/no-inferrable-types": OFF,
     "@typescript-eslint/ban-ts-ignore": WARN,
     "semi": [OFF, "always"],
+    "curly": [WARN, "all"],
   }
 };

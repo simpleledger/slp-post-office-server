@@ -44,8 +44,10 @@ export default class Transaction implements ITransaction {
     getNeededStamps(transaction: bitcore.Transaction): number {
         BigNumber.set({ ROUNDING_MODE: BigNumber.ROUND_UP });
         const transactionScript = transaction.outputs[Transaction.SLP_OP_RETURN_VOUT].script.toASM().split(' ');
-        if (transactionScript[Transaction.LOKAD_ID_INDEX] !== Transaction.LOKAD_ID_INDEX_VALUE)
+
+        if (transactionScript[Transaction.LOKAD_ID_INDEX] !== Transaction.LOKAD_ID_INDEX_VALUE) {
             throw new Error(errorMessages.INVALID_SLP_OP_RETURN);
+        }
 
         let neededStamps = 0;
         let tokenOutputPostage = 0;
@@ -53,10 +55,16 @@ export default class Transaction implements ITransaction {
             const addressFromOut = bchaddr.toSlpAddress(
                 transaction.outputs[i].script.toAddress().toString()
             );
-            const postOfficeAddress = Config.postage.postageRate.address;
-            if (postOfficeAddress === addressFromOut) tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i;
+
+            // check if its our own deposit address
+            if (Config.postage.postageRate.address === addressFromOut) {
+                tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i;
+            }
         }
-        if (tokenOutputPostage === 0) throw new Error(errorMessages.INSUFFICIENT_POSTAGE);
+
+        if (tokenOutputPostage === 0) {
+            throw new Error(errorMessages.INSUFFICIENT_POSTAGE);
+        }
 
         // Check if token being spent is the same as described in the postage rate for the stamp
         // Check if postage is being paid accordingly

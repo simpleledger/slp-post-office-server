@@ -30,7 +30,7 @@ describe('#Postage.ts', () => {
                 | Promise<any>
                 | sinon.SinonStub<[number, string], Promise<any>>,
         })
-        postage = new Postage(bchdNetworkMock)
+        postage = new Postage(Config, bchdNetworkMock)
     })
 
     afterEach(() => {

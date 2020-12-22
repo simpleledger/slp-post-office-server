@@ -18,14 +18,15 @@ export interface PostageConfig {
     mnemonic: string;
     memo: string;
     network: string;
-    postageRate: {
-        version: number;
-        address: string;
-        weight: number;
-        transactionttl: number;
-        stamps: StampConfig[];
-    };
 }
+
+export interface PostageRateConfig {
+    version: number;
+    address: string;
+    weight: number;
+    transactionttl: number;
+    stamps: StampConfig[];
+};
 
 export interface PriceFeederConfig {
     tokenId: string;
@@ -33,37 +34,54 @@ export interface PriceFeederConfig {
     useInitialStampRateAsMin: boolean;
 }
 
-export class Config {
-    static server = {
+export interface ServerConfig {
+    server: {
+        port: number;
+        host: string;
+        limitEvery: number;
+        limitMaxReqs: number;
+    }
+
+    bchd: {
+        server: string;
+    }
+
+    postage: PostageConfig;
+    postageRate: PostageRateConfig;
+    priceFeeders: PriceFeederConfig[];
+}
+
+const Config: ServerConfig = {
+    server: {
         port: Number(process.env.SERVER_PORT ? process.env.SERVER_PORT : 3000),
         host: process.env.SERVER_HOST ? process.env.SERVER_HOST : '0.0.0.0',
         limitEvery: 15 * 60 * 1000,
         limitMaxReqs: 100,
-    }
-    static bchd = {
+    },
+    bchd: {
         server: process.env.BCHD_SERVER,
-    }
-    static postage: PostageConfig = {
+    },
+    postage: {
         mnemonic: process.env.MNEMONIC,
         network: process.env.NETWORK,
         memo: process.env.MEMO,
-        postageRate: {
-            version: 1,
-            address: process.env.ADDRESS,
-            weight: 365,
-            transactionttl: 30,
-            stamps: [
-                {
-                    name: "Spice",
-                    symbol: "SPICE",
-                    tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
-                    decimals: 8,
-                    rate: new BigNumber(10)
-                }
-            ]
-        }
-    }
-    static priceFeeders: PriceFeederConfig[] = [
+    },
+    postageRate: {
+        version: 1,
+        address: process.env.ADDRESS,
+        weight: 365,
+        transactionttl: 30,
+        stamps: [
+            {
+                name: "Spice",
+                symbol: "SPICE",
+                tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
+                decimals: 8,
+                rate: new BigNumber(10)
+            }
+        ]
+    },
+    priceFeeders: [
         /*
         // FLEX / coinflex.com
         {
@@ -94,5 +112,7 @@ export class Config {
         /*
          * Add your own implementations here...
          */
-    ]
-}
+    ],
+};
+
+export { Config };

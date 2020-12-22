@@ -1,7 +1,7 @@
 import bitcore from 'bitcore-lib-cash';
 import errorMessages from '../ErrorMessages';
 import { GrpcClient } from 'grpc-bchrpc-node';
-import { Config } from './../Config';
+import { ServerConfig } from './../Config';
 import { Log } from './../Log';
 import INetUtxo from './INetUtxo';
 import AbstractNetwork from './AbstractNetwork';
@@ -9,10 +9,12 @@ import AbstractNetwork from './AbstractNetwork';
 export default class BCHDNetwork implements AbstractNetwork {
     static MIN_BYTES_INPUT = 181
 
+    config: ServerConfig;
     bchd: GrpcClient;
 
-    constructor() {
-        this.bchd = new GrpcClient({ url: Config.bchd.server });
+    constructor(config: ServerConfig) {
+        this.config = config;
+        this.bchd = new GrpcClient({ url: this.config.bchd.server });
     }
 
     private async checkServerSLPIndexingEnabled(): Promise<void> {
@@ -47,7 +49,7 @@ export default class BCHDNetwork implements AbstractNetwork {
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
                 script: Buffer.from(u.getPubkeyScript_asU8()).toString('hex'),
             }))
-            .filter(u => u.value > Config.postage.postageRate.weight * 2);
+            .filter(u => u.value > this.config.postageRate.weight * 2);
 
         Log.debug(utxos);
 

@@ -28,7 +28,7 @@ export default class TokenPriceFeeder {
             this._applyCustomRule = applyCustomRule;
             this.useInitialStampRateAsMin = useInitialStampRateAsMin;
 
-            Config.postage.postageRate.stamps.forEach(stamp => {
+            Config.postageRate.stamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {
                     this.initialStampRate = new BigNumber(stamp.rate);
                 }
@@ -39,7 +39,7 @@ export default class TokenPriceFeeder {
     public async run(): Promise<void> {
         setInterval(async () => {
             const priceData = await this.apiWrapper.getPrice();
-            const currentStamps = Config.postage.postageRate.stamps;
+            const currentStamps = Config.postageRate.stamps;
 
             currentStamps.forEach(stamp => {
                 if (stamp.tokenId === this.tokenId) {

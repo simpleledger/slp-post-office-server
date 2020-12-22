@@ -42,12 +42,13 @@ app.use(cors());
 app.use(slpMiddleware);
 app.use(limiter);
 
-const network = new BCHDNetwork();
+const network = new BCHDNetwork(Config);
+const postage = new Postage(Config, network);
 
 const mutex = new Mutex();
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
-    res.send(Config.postage.postageRate);
+    res.send(Config.postageRate);
 });
 
 app.post('/postage', async function(req: express.Request, res: express.Response): Promise<void> {
@@ -58,7 +59,6 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
         }
         const release = await mutex.acquire();
         try {
-            const postage = new Postage(network);
             // @ts-ignore
             const serializedPaymentAck = await postage.addStampsToTxAndBroadcast(req.raw);
             res.status(200).send(serializedPaymentAck);
@@ -91,7 +91,6 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
     tokenPriceFeeder.run();
 });
 
-const postage = new Postage(network);
 // @ts-ignore
 const cashAddress = postage.hdNode.privateKey.toAddress().toString();
 Log.info(`Send stamps to: ${cashAddress}`);

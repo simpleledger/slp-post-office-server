@@ -2,7 +2,7 @@ import bitcore from 'bitcore-lib-cash';
 import * as bchaddr from 'bchaddrjs-slp';
 import BigNumber from 'bignumber.js';
 
-import { Config } from './Config';
+import { ServerConfig } from './Config';
 import { Log } from './Log';
 import errorMessages from './ErrorMessages';
 import INetUtxo from './Network/INetUtxo';
@@ -13,6 +13,12 @@ export default class Transaction {
     static TOKEN_ID_INDEX = 4
     static LOKAD_ID_INDEX_VALUE = '534c5000'
     static SLP_OP_RETURN_VOUT = 0
+
+    config: ServerConfig;
+
+    constructor(config: ServerConfig) {
+        this.config = config;
+    }
 
     addStampsForTransactionAndSignInputs(tx: bitcore.Transaction, hdNode: bitcore.HDPrivateKey, stamps: INetUtxo[]): bitcore.Transaction {
         for (const stamp of stamps) {
@@ -51,7 +57,7 @@ export default class Transaction {
             const addrFromOut = bchaddr.toSlpAddress(tx.outputs[i].script.toAddress().toString());
 
             // check if its our own deposit address
-            if (Config.postage.postageRate.address === addrFromOut) {
+            if (this.config.postageRate.address === addrFromOut) {
                 tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i;
             }
         }
@@ -63,7 +69,7 @@ export default class Transaction {
         // Check if token being spent is the same as described in the postage rate for the stamp
         // Check if postage is being paid accordingly
         const postagePaymentTokenId = txScript[Transaction.TOKEN_ID_INDEX];
-        const stampDetails = Config.postage.postageRate.stamps
+        const stampDetails = this.config.postageRate.stamps
             .filter(stamp => stamp.tokenId === postagePaymentTokenId)
             .pop() || false;
 
@@ -97,7 +103,7 @@ export default class Transaction {
             })));
         tx.feePerByte(1);
 
-        const stampSize = Config.postage.postageRate.weight + Transaction.MIN_BYTES_INPUT;
+        const stampSize = this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT;
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0);
         let numberOfPossibleStamps = Math.floor(originalAmount / stampSize);

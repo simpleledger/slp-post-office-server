@@ -29,7 +29,6 @@ export default class Postage {
     }
 
     async addStampsToTxAndBroadcast(rawIncomingPayment: Buffer): Promise<any> {
-        // @ts-ignore
         const cashAddress = this.hdNode.privateKey.toAddress().toString();
 
         const paymentProtocol = new PaymentProtocol('BCH');
@@ -52,7 +51,6 @@ export default class Postage {
     }
 
     async generateStamps(): Promise<void> {
-        // @ts-ignore
         const cashAddress = this.hdNode.privateKey.toAddress().toString();
 
         Log.info('Generating stamps...');

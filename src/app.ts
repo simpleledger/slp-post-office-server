@@ -96,7 +96,6 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
     tokenPriceFeeder.run();
 });
 
-// @ts-ignore
 const cashAddress = postage.hdNode.privateKey.toAddress().toString();
 Log.info(`Send stamps to: ${cashAddress}`);
 

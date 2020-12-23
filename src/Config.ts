@@ -18,6 +18,7 @@ export interface PostageConfig {
     mnemonic: string;
     memo: string;
     network: string;
+    stampGenerationIntervalSeconds: number;
 }
 
 export interface PostageRateConfig {
@@ -65,6 +66,7 @@ const Config: ServerConfig = {
         mnemonic: process.env.MNEMONIC,
         network: process.env.NETWORK,
         memo: process.env.MEMO,
+        stampGenerationIntervalSeconds: Number(process.env.STAMP_GENERATION_INTERVAL ? process.env.STAMP_GENERATION_INTERVAL : 600),
     },
     postageRate: {
         version: 1,

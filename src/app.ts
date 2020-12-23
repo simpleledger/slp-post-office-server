@@ -99,8 +99,10 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
 const cashAddress = postage.hdNode.privateKey.toAddress().toString();
 Log.info(`Send stamps to: ${cashAddress}`);
 
-const stampGenerationIntervalInMinutes = 30;
-setInterval(postage.generateStamps, 1000 * 60 * stampGenerationIntervalInMinutes);
+setInterval(
+    () => postage.generateStamps(),
+    1000 * Config.postage.stampGenerationIntervalSeconds
+);
 postage.generateStamps();
 
 const server = app.listen(Config.server.port, Config.server.host, async () => {

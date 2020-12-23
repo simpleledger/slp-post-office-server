@@ -5,6 +5,7 @@ const mockPostageConfig: PostageConfig = {
     mnemonic: 'truly banner canyon tiny space cube crawl bird allow box audit bronze',
     network: 'mainnet',
     memo: "MOCK Postage",
+    stampGenerationIntervalSeconds: 40,
 };
 
 const mockPostageRateConfig: PostageRateConfig = {

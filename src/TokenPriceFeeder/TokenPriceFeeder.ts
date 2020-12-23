@@ -53,7 +53,9 @@ export default class TokenPriceFeeder {
                         newStampRate = this.initialStampRate;
                     }
 
-                    Log.debug(`${stamp.tokenId} updated rate ${stamp.rate} -> ${newStampRate}`);
+                    if (! stamp.rate.eq(newStampRate)) {
+                        Log.debug(`${stamp.tokenId} updated rate ${stamp.rate} -> ${newStampRate}`);
+                    }
                     stamp.rate = newStampRate;  
                 }
             });

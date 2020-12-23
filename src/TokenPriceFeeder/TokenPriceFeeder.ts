@@ -39,6 +39,11 @@ export default class TokenPriceFeeder {
         setInterval(async () => {
             const priceData = await this.apiWrapper.getPrice();
 
+            if (! priceData) {
+                Log.error(`${this.apiWrapper.constructor.name} Received bad price data`);
+                return;
+            }
+
             Config.postageRate.stamps.forEach(stamp => {
                 if (stamp.tokenId === this.priceFeederConfig.tokenId) {
                     const price: BigNumber = this.priceFeederConfig.rule(priceData);

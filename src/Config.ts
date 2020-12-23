@@ -3,7 +3,7 @@ require('dotenv').config();
 import { BigNumber } from 'bignumber.js';
 
 // import CoinFlexFLEXApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
-// import BitcoinComSpiceApiWrapper from './TokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
+import BitcoinComSpiceApiWrapper from './TokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
 // import CoinexUSDTApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
 
 export interface StampConfig {
@@ -30,9 +30,11 @@ export interface PostageRateConfig {
 };
 
 export interface PriceFeederConfig {
+    tick?: number;
     tokenId: string;
     feederClass: any; // TODO make better typed
-    useInitialStampRateAsMin: boolean;
+    useInitialStampRateAsMin?: boolean;
+    rule?: (n: BigNumber) => BigNumber;
 }
 
 export interface ServerConfig {
@@ -93,14 +95,14 @@ const Config: ServerConfig = {
         },
         */
 
-        /*
         // SPICE / exchange.bitcoin.com
         {
-            "tokenId": "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
-            "feederClass": BitcoinComSpiceApiWrapper,
-            "useInitialStampRateAsMin": true
-        }
-        */
+            tick: 5,
+            tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
+            feederClass: BitcoinComSpiceApiWrapper,
+            useInitialStampRateAsMin: false,
+            rule: (n: BigNumber) => new BigNumber(0.00000546).dividedBy(n).times(1.9),
+        },
 
         /*
         // USDT / coinex.com

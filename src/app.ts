@@ -87,13 +87,7 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
  */
 
 Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
-    const tokenPriceFeeder = new TokenPriceFeeder(
-        100,
-        priceFeeder.tokenId,
-        new priceFeeder.feederClass(),
-        priceFeeder.useInitialStampRateAsMin
-    );
-    tokenPriceFeeder.run();
+    new TokenPriceFeeder(priceFeeder).run();
 });
 
 const cashAddress = postage.hdNode.privateKey.toAddress().toString();

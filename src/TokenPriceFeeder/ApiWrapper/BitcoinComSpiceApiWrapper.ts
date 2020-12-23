@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import HttpClient from './HttpClient';
 import IApiWrapper from './IApiWrapper';
 import { Log } from './../../Log';
@@ -7,10 +8,10 @@ export default class BitcoinComSpiceApiWrapper extends HttpClient implements IAp
         super('https://api.exchange.bitcoin.com/api/2/public/ticker/SPICEBCH');
     }
 
-    public async getPrice(): Promise<number> {
+    public async getPrice(): Promise<BigNumber> {
         try {
             const res = await this.instance.get('');
-            return res.high;
+            return new BigNumber(res.high);
         } catch(e) {
             Log.error(`Error while trying to get price data from exchange.bitcoin.com: ${e.message}`);
         }

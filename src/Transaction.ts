@@ -21,6 +21,8 @@ export default class Transaction {
     }
 
     addStampsForTransactionAndSignInputs(tx: bitcore.Transaction, hdNode: bitcore.HDPrivateKey, stamps: INetUtxo[]): bitcore.Transaction {
+        const lastSlpInputVin = tx.inputs.length - 1;
+
         for (const stamp of stamps) {
             tx.addInput(new bitcore.Transaction.Input.PublicKeyHash({
                 output: new bitcore.Transaction.Output({
@@ -33,7 +35,6 @@ export default class Transaction {
             }));
         }
 
-        const lastSlpInputVin = tx.inputs.length - 1;
         for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
             Log.debug(`Signing... ${i}`);
             const signature = tx.inputs[i].getSignatures(tx, hdNode.privateKey, i)[0];

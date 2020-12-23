@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>SLP Post Office</title>
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+        <style>
+            *, ::after, ::before {
+                box-sizing: border-box;
+                overflow-wrap: break-word;
+            }
+            html {
+              font-family: 'Source Sans Pro', monospace;
+              font-size: 1em;
+              font-smooth: auto;
+              font-weight: 300;
+              line-height: 1.5;
+              color: #fff;
+              padding: 0;
+              margin: 0;
+            }
+
+            body {
+              background-color: #030f1b;
+              padding: 0;
+              margin: 0;
+            }
+
+            a {
+              text-decoration: none;
+            }
+            section {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 0.5em 0.5em 1.5em 0.5em;
+            }
+            section > section {
+                padding-bottom:0rem;
+            }
+            section#intro {
+                align-items: center;
+                flex-flow: column;
+                text-align: center;
+                padding: 3vh 0.5em 5vh 0.5em;
+            }
+            section#intro p {
+                text-align: center;
+                margin: 0;
+                font-size: 1.5em;
+            }
+
+            figure {
+              position: relative;
+              display: flex;
+              align-items: flex-start;
+              justify-content: center;
+              width: 290px;
+              height: 290px;
+              padding: 20px 20px;
+              background-position: center center;
+              background-repeat: no-repeat;
+              background-size: cover;
+              border-radius: 10px;
+              box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+              transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+              overflow: hidden;
+              background-color: white;
+            }
+            figure:before, figure:after {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+            }
+            figure:before {
+              content: '';
+              background-color: rgba(255, 255, 255, 1);
+              z-index: 0;
+            }
+            figure:after {
+              content: '';
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 0);
+              overflow: hidden;
+              background-color: rgba(0, 0, 0, 0.5);
+            }
+            figure:hover:after {
+              content: '▶️';
+              background-color: rgba(0, 0, 0, 0);
+              color: white;
+              font-size: 72px;
+              z-index: 2;
+            }
+            #supportedtokenslist {
+                background-color: rgba(255, 131, 131, 0.1);
+                border-radius: 5px;
+                box-shadow: 0px 0px 1px rgba(255, 131, 131, 0.1);
+                padding: 1rem;
+            }
+            #supportedtokenslist figure:before {
+              background-color: rgba(255, 255, 255, 0.0);
+            }
+
+            figure:hover figcaption {
+              transform: translateY(-110%);
+            }
+            figure figcaption {
+              color: white;
+              transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+              z-index: 1;
+            }
+            figure figcaption h4 {
+              margin: 0 0 5px;
+              font-family: "Source Code Pro", sans-serif;
+              font-size: 34px;
+              line-height: 1.35;
+              text-shadow: 1px 1px rgba(0, 0, 0, 0.7);
+            }
+            figure figcaption h4 > span {
+              width: 100%;
+              text-shadow: 2px 2px #000;
+              padding: 0.25rem;
+            }
+            figure figcaption p, figure figcaption ul {
+              margin: 0;
+              line-height: 1.8;
+              text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+              padding: 0.25rem;
+            }
+            #into h1 {
+                line-height: 1.25;
+            }
+            h1 {
+                font-size: 3.45em;
+                margin: 0;
+                width: 100%;
+                text-align: center;
+            }
+            a {
+                color: #3C93DA;
+            }
+            a#donateaddr {
+                background-color: #fff;
+                padding: 0.5rem 1rem;
+                word-break: break-all;
+                border-radius: 0.25rem;
+            }
+            form {
+                width: 690px;
+                max-width: 95%;
+                margin: 1em 0px 0px 0px;
+            }
+            input, textarea,button {
+                font-family: 'Source Sans Pro', monospace;
+                font-size: 1.5em;
+                border: 1px solid #333;
+                outline: 0;
+                margin-bottom: 1rem;
+                padding: .375rem .75rem;
+                background: #fff;
+                border: 1px solid #cfcfcf;
+                border-radius: .25rem;
+                width: 100%;
+            }
+            button {
+                background-color: #ffffff5f;
+            }
+            button:hover {
+                background-color: #ffffff8f;
+                cursor: pointer;
+            }
+            img {
+                max-width: 100%;
+            }
+            @media only screen and (max-width: 775px) {
+                figure {
+                    width: auto;
+                    height: 230px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <section id="intro">
+            <h1>SLP Post Office</h1>
+            <p>Learn how to integrate by reading the <a href="https://slp.dev/specs/slp-postage-protocol/">Post Office Specification</a> and asking in <a href="https://t.me/simpleledger">Simple Ledger Protocol Telegram</a>.</p>
+        </section>
+
+        <section id="supportedtokens">
+            <h1>Supported Tokens</h1>
+            <section id="supportedtokenslist">
+                <h2>Loading...</h2>
+            </section>
+        </section>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bignumber.js/8.0.2/bignumber.min.js"></script>
+        <script>
+            fetch('/postage')
+            .then((res) => res.json())
+            .then((json) => {
+                console.log(json);
+                const list = document.getElementById('supportedtokenslist');
+                list.innerHTML = '';
+
+                if (json.stamps.length === 0) {
+                    list.innerHTML = '<h2>No tokens found...</h2>';
+                }
+
+                json.stamps.forEach((token) => {
+                    let node = document.createElement('div');
+                    node.innerHTML = `
+                        <a href="https://simpleledger.info/#token/${token.tokenId}">
+                            <figure style="background-image: url(https://icons.fountainhead.cash/128/${token.tokenId}.png)">
+                                <figcaption>
+                                    <h4> <span>${token.name} (${token.symbol})</span></h4>
+                                    <p>Stamp rate: ${new BigNumber(token.rate).dividedBy(10 ** token.decimals).toFixed(8)} ${token.symbol}</p>
+                                </figcaption>
+                            </figure>
+                        </a>
+                    `;
+                    list.appendChild(node);
+                });
+            });
+        </script>
+    </body>
+</html>

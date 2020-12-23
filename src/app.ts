@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import cors = require('cors')
@@ -46,6 +47,10 @@ const network = new BCHDNetwork(Config);
 const postage = new Postage(Config, network);
 
 const mutex = new Mutex();
+
+app.get('/', function(req: express.Request, res: express.Response) {
+    res.sendFile(path.join(__dirname + '/../public/index.html'));
+});
 
 app.get('/postage', function(req: express.Request, res: express.Response): void {
     res.send(Config.postageRate);

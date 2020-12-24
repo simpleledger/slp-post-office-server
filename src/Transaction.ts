@@ -35,7 +35,7 @@ export default class Transaction {
             }));
         }
 
-        for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
+        for (let i = lastSlpInputVin + 1; i <= stamps.length + lastSlpInputVin; i++) {
             Log.debug(`Signing... ${i}`);
             const signature = tx.inputs[i].getSignatures(tx, hdNode.privateKey, i)[0];
             tx.applySignature(signature);

@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+import bitcore from 'bitcore-lib-cash';
+import Mnemonic from 'bitcore-mnemonic';
 import { BigNumber } from 'bignumber.js';
 
 // import CoinFlexFLEXApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
@@ -15,10 +17,10 @@ export interface StampConfig {
 }
 
 export interface PostageConfig {
-    mnemonic: string;
     memo: string;
     network: string;
     stampGenerationIntervalSeconds: number;
+    hdNode: bitcore.HDPrivateKey;
 }
 
 export interface PostageRateConfig {
@@ -27,7 +29,7 @@ export interface PostageRateConfig {
     weight: number;
     transactionttl: number;
     stamps: StampConfig[];
-};
+}
 
 export interface PriceFeederConfig {
     tick?: number;
@@ -43,11 +45,11 @@ export interface ServerConfig {
         host: string;
         limitEvery: number;
         limitMaxReqs: number;
-    }
+    };
 
     bchd: {
         server: string;
-    }
+    };
 
     postage: PostageConfig;
     postageRate: PostageRateConfig;
@@ -65,7 +67,7 @@ const Config: ServerConfig = {
         server: process.env.BCHD_SERVER,
     },
     postage: {
-        mnemonic: process.env.MNEMONIC,
+        hdNode: new Mnemonic(process.env.MNEMONIC).toHDPrivateKey(),
         network: process.env.NETWORK,
         memo: process.env.MEMO,
         stampGenerationIntervalSeconds: Number(process.env.STAMP_GENERATION_INTERVAL ? process.env.STAMP_GENERATION_INTERVAL : 600),

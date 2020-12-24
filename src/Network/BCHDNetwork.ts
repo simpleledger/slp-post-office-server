@@ -25,11 +25,11 @@ export default class BCHDNetwork implements AbstractNetwork {
         }
     }
 
-    async fetchUTXOsForStampGeneration(cashAddress: string): Promise<INetUtxo[]> {
+    async fetchUTXOsForStampGeneration(address: bitcore.Address): Promise<INetUtxo[]> {
         await this.checkServerSLPIndexingEnabled();
 
         const res = await this.bchd.getAddressUtxos({
-            address: cashAddress,
+            address: address.toString(),
             includeMempool: true,
             includeTokenMetadata: true,
         });
@@ -59,11 +59,11 @@ export default class BCHDNetwork implements AbstractNetwork {
         return utxos;
     }
 
-    async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, cashAddress: string): Promise<INetUtxo[]> {
+    async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, address: bitcore.Address): Promise<INetUtxo[]> {
         await this.checkServerSLPIndexingEnabled();
 
         const res = await this.bchd.getAddressUtxos({
-            address: cashAddress,
+            address: address.toString(),
             includeMempool: true,
             includeTokenMetadata: true,
         });
@@ -97,13 +97,14 @@ export default class BCHDNetwork implements AbstractNetwork {
 
     async broadcastTransaction(rawTransaction: Buffer): Promise<string> {
         Log.debug(`Broadcasting transaction: ${rawTransaction.toString('hex')}`);
+
         const res = await this.bchd.submitTransaction({
             txnBuf: rawTransaction,
         });
 
-        const transactionId = Buffer.from(res.getHash_asU8().reverse()).toString('hex');
+        const txId = Buffer.from(res.getHash_asU8().reverse()).toString('hex');
 
-        Log.info(`https://explorer.bitcoin.com/bch/tx/${transactionId}`); // TODO better logging here
-        return transactionId;
+        Log.info(`broadcasted ${txId}`);
+        return txId;
     }
 }

@@ -17,7 +17,7 @@ export const stampMock: INetUtxo[] = [
     },
 ]
 
-export const utxosToSplitMock: any = [
+export const utxosToSplitMock: INetUtxo[] = [
     {
         tx_hash: '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5',
         tx_pos: 0,

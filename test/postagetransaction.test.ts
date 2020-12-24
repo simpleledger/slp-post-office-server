@@ -23,11 +23,10 @@ describe('#PostageTransaction.ts', () => {
             )
             chai.assert.equal(incomingTransaction.inputs.length, 1)
 
-            const hdNode = {privateKey: bitcore.PrivateKey.fromWIF('L1XPxGFKXjYrC3mT91Sqr9bXLemepHHPGif1duu9BzaDZZ7P8Mq3')}
-            const resultTransaction = ptx.addStampsForTransactionAndSignInputs(
+            const resultTransaction = ptx.addStampsForTransaction(
                 incomingTransaction,
-                hdNode,
                 mockData.stampMock,
+                true
             )
             chai.assert.equal(resultTransaction.inputs.length, 3)
         })
@@ -76,7 +75,7 @@ describe('#PostageTransaction.ts', () => {
                 chai.assert.equal(err.message, ErrorMessages.UNSUPPORTED_SLP_TOKEN)
             }
         })
-        it('should return number of stamps requiered for the transaction', () => {
+        it('should return number of stamps required for the transaction', () => {
             const validMockTransaction = new bitcore.Transaction(
                 '010000000101ece1cd3cb5c7097b173c906f3ab3033e0f1065891964ec3bdbd7b0b168c0fb0100000000ffffffff030000000000000000406a04534c500001010453454e44209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c110800000000479a44bb080000000002625a0022020000000000001976a914a0f531f4ff810a415580c12e54a7072946bb927e88ac220200000000000017a914e8f3b3d3ceea2d7b8750ef400161c6162b3b484b8700000000',
             )
@@ -91,8 +90,8 @@ describe('#PostageTransaction.ts', () => {
             const hdNode = {privateKey: bitcore.PrivateKey.fromWIF('L1XPxGFKXjYrC3mT91Sqr9bXLemepHHPGif1duu9BzaDZZ7P8Mq3')}
 
             // mockData.utxosToSplitMock contains 2148 sat, should split into 3 stamps
-            const tx = ptx.splitUtxosIntoStamps(mockData.utxosToSplitMock, hdNode)
-            const generatedTransaction = new bitcore.Transaction(tx)
+            const tx = ptx.splitUtxosIntoStamps(mockData.utxosToSplitMock);
+            const generatedTransaction = new bitcore.Transaction(tx);
 
             chai.assert.equal(generatedTransaction.outputs.length, 3)
         })

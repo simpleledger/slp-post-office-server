@@ -1,8 +1,9 @@
+import Mnemonic from 'bitcore-mnemonic';
 import { BigNumber } from 'bignumber.js';
 import { Config, PostageConfig, PostageRateConfig } from './../../src/Config'
 
 const mockPostageConfig: PostageConfig = {
-    mnemonic: 'truly banner canyon tiny space cube crawl bird allow box audit bronze',
+    hdNode: new Mnemonic(process.env.MNEMONIC).toHDPrivateKey(),
     network: 'mainnet',
     memo: "MOCK Postage",
     stampGenerationIntervalSeconds: 40,

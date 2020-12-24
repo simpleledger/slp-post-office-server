@@ -2,10 +2,12 @@
 import chai from 'chai'
 import * as sinon from 'sinon'
 
+import bitcore from 'bitcore-lib-cash';
 import PaymentProtocol from 'bitcore-payment-protocol'
 
 import Postage from '../src/Postage'
 import BCHDNetwork from '../src/Network/BCHDNetwork'
+import INetUtxo from './../src/Network/INetUtxo';
 import * as mockData from './mocks/postage.mocks'
 
 import Config from './mocks/configMock'
@@ -23,11 +25,11 @@ describe('#Postage.ts', () => {
         const bchdNetworkMock = sandbox.createStubInstance(BCHDNetwork, {
             validateSLPInputs: sandbox.stub().resolves() as Promise<any> | sinon.SinonStub<[any], Promise<void>>,
             broadcastTransaction: sandbox.stub().resolves(transactionId) as
-                | Promise<any>
-                | sinon.SinonStub<[any], Promise<any>>,
+                | Promise<string>
+                | sinon.SinonStub<[Buffer], Promise<string>>,
             fetchUTXOsForNumberOfStampsNeeded: sandbox.stub().resolves(mockData.stampsMock) as
-                | Promise<any>
-                | sinon.SinonStub<[number, string], Promise<any>>,
+                | Promise<INetUtxo[]>
+                | sinon.SinonStub<[number, bitcore.Address], Promise<INetUtxo[]>>,
         })
         postage = new Postage(Config, bchdNetworkMock)
     })
@@ -38,26 +40,8 @@ describe('#Postage.ts', () => {
 
     describe('#addStampsToTxAndBroadcast', () => {
         it('should add stamps to transaction and broadcast it to the network', async () => {
-            // sandbox.stub(postage.network, 'validateSLPInputs').resolves() as
-            //     | Promise<any>
-            //     | sinon.SinonStub<[any], Promise<void>>
-            // sandbox.stub(postage.network, 'broadcastTransaction').resolves(transactionId) as
-            //     | Promise<any>
-            //     | sinon.SinonStub<[any], Promise<any>>
-            // sandbox.stub(postage.network, 'fetchUTXOsForNumberOfStampsNeeded').resolves(mockData.stampsMock) as
-            //     | Promise<any>
-            //     | sinon.SinonStub<[number, string], Promise<any>>
-
             const rawIncomingPayment = Buffer.from(
-                '12a8020100000001ca6193753fe1e19d89c8785b89bd7bfd0f37efbd0037a27e2126e' +
-                    '9fffaa87882030000006a47304402204863028b70ccee19721d6d06489a300be559d4' +
-                    '906f3e92c2bdb4b215dd9a4de702201e21f572dfb914f6579388b58275896d5dcc365' +
-                    '9164f252bb33a2c6d8ac03897c12103232b147c9483c6e7203b4f8a53c20fade7c12f' +
-                    '2791e2e8303b78a5675c0bdad1ffffffff030000000000000000406a04534c5000010' +
-                    '10453454e44209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b' +
-                    '63615c110800000000479a44bb080000000002625a0022020000000000001976a914a' +
-                    '0f531f4ff810a415580c12e54a7072946bb927e88ac220200000000000017a914e8f3' +
-                    'b3d3ceea2d7b8750ef400161c6162b3b484b87000000002209556e69742054657374',
+                '12a8020100000001ca6193753fe1e19d89c8785b89bd7bfd0f37efbd0037a27e2126e9fffaa87882030000006a47304402204863028b70ccee19721d6d06489a300be559d4906f3e92c2bdb4b215dd9a4de702201e21f572dfb914f6579388b58275896d5dcc3659164f252bb33a2c6d8ac03897c12103232b147c9483c6e7203b4f8a53c20fade7c12f2791e2e8303b78a5675c0bdad1ffffffff030000000000000000406a04534c500001010453454e44209fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c110800000000479a44bb080000000002625a0022020000000000001976a914a0f531f4ff810a415580c12e54a7072946bb927e88ac220200000000000017a914e8f3b3d3ceea2d7b8750ef400161c6162b3b484b87000000002209556e69742054657374',
                 'hex',
             )
             const paymentACKRaw = await postage.addStampsToTxAndBroadcast(rawIncomingPayment)
@@ -74,11 +58,11 @@ describe('#Postage.ts', () => {
         it('should attempt to generate and broadcast new stamps', async () => {
             const networkMock = sandbox.createStubInstance(BCHDNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
-                    | Promise<any>
-                    | sinon.SinonStub<[any], Promise<any>>,
+                    | Promise<string>
+                    | sinon.SinonStub<[Buffer], Promise<string>>,
                 fetchUTXOsForStampGeneration: sandbox.stub().resolves(mockData.utxoForStampGenerationMock) as
-                    | Promise<any>
-                    | sinon.SinonStub<[string], Promise<any>>,
+                    | Promise<INetUtxo[]>
+                    | sinon.SinonStub<[bitcore.Address], Promise<INetUtxo[]>>,
             })
             postage.network = networkMock
 
@@ -91,11 +75,11 @@ describe('#Postage.ts', () => {
         it('should not broadcast anything if server had no balance', async () => {
             const networkMock = sandbox.createStubInstance(BCHDNetwork, {
                 broadcastTransaction: sandbox.stub().resolves(transactionId) as
-                    | Promise<any>
-                    | sinon.SinonStub<[any], Promise<any>>,
+                    | Promise<string>
+                    | sinon.SinonStub<[Buffer], Promise<string>>,
                 fetchUTXOsForStampGeneration: sandbox.stub().resolves([]) as
-                    | Promise<any>
-                    | sinon.SinonStub<[string], Promise<any>>,
+                    | Promise<INetUtxo[]>
+                    | sinon.SinonStub<[bitcore.Address], Promise<INetUtxo[]>>,
             })
             postage.network = networkMock
 

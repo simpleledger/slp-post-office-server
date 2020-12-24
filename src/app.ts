@@ -90,8 +90,7 @@ Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
     new TokenPriceFeeder(priceFeeder).run();
 });
 
-const cashAddress = postage.hdNode.privateKey.toAddress().toString();
-Log.info(`Send stamps to: ${cashAddress}`);
+Log.info(`Send stamps to: ${postage.getDepositAddress().toString()}`);
 
 setInterval(
     () => postage.generateStamps(),

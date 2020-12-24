@@ -23,9 +23,7 @@ export default class PostageTransaction {
         this.config = config;
     }
 
-    addStampsForTransactionAndSignInputs(tx: bitcore.Transaction, hdNode: bitcore.HDPrivateKey, stamps: INetUtxo[]): bitcore.Transaction {
-        const lastSlpInputVin = tx.inputs.length - 1;
-
+    addStampsForTransaction(tx: bitcore.Transaction, stamps: INetUtxo[]): bitcore.Transaction {
         for (const stamp of stamps) {
             tx.addInput(new bitcore.Transaction.Input.PublicKeyHash({
                 output: new bitcore.Transaction.Output({
@@ -38,10 +36,22 @@ export default class PostageTransaction {
             }));
         }
 
+        return tx;
+    }
+
+    signInputs(tx: bitcore.Transaction, stamps: INetUtxo[]): bitcore.Transaction {
+        const lastSlpInputVin = tx.inputs.length - 1 - stamps.length;
+
         for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
             Log.debug(`Signing... ${i}`);
-            const signature = tx.inputs[i].getSignatures(tx, hdNode.privateKey, i)[0];
-            tx.applySignature(signature);
+
+            const signatures: bitcore.crypto.Signature[] = tx.inputs[i].getSignatures(tx, this.config.postage.hdNode.privateKey, i);
+
+            if (signatures.length === 0) {
+                throw new Error('Signature not found');
+            }
+
+            tx.applySignature(signatures[0]);
         }
 
         return tx;
@@ -95,8 +105,8 @@ export default class PostageTransaction {
         return Number(amountPostagePaid.dividedBy(stampRate).toFixed(0));
     }
 
-    splitUtxosIntoStamps(utxos: INetUtxo[], hdNode: bitcore.HDPrivateKey): bitcore.Transaction {
-        const addr: bitcore.Address = hdNode.privateKey.toAddress();
+    splitUtxosIntoStamps(utxos: INetUtxo[]): bitcore.Transaction {
+        const addr: bitcore.Address = this.config.postage.hdNode.privateKey.toAddress();
 
         const tx = new bitcore.Transaction()
             .from(utxos.map(u => new bitcore.Transaction.UnspentOutput({
@@ -132,7 +142,7 @@ export default class PostageTransaction {
                 }
             }
         }        
-        tx.sign(hdNode.privateKey);
+        tx.sign(this.config.postage.hdNode.privateKey);
 
         return tx;
     }

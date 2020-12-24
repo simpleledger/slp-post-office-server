@@ -40,9 +40,9 @@ export default class PostageTransaction {
     }
 
     signInputs(tx: bitcore.Transaction, stamps: INetUtxo[]): bitcore.Transaction {
-        const lastSlpInputVin = tx.inputs.length - 1 - stamps.length;
+        const lastSlpInputVin = tx.inputs.length - stamps.length;
 
-        for (let i = lastSlpInputVin + 1; i <= stamps.length; i++) {
+        for (let i = lastSlpInputVin; i < tx.inputs.length; ++i) {
             Log.debug(`Signing... ${i}`);
 
             const signatures: bitcore.crypto.Signature[] = tx.inputs[i].getSignatures(tx, this.config.postage.hdNode.privateKey, i);

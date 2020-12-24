@@ -4,7 +4,7 @@ import bitcore from 'bitcore-lib-cash';
 
 import { ServerConfig, PostageRateConfig } from './Config';
 import { Log } from './Log';
-import Transaction from './Transaction';
+import PostageTransaction from './PostageTransaction';
 import AbstractNetwork from './Network/AbstractNetwork';
 import BCHDNetwork from './Network/BCHDNetwork';
 import INetUtxo from './Network/INetUtxo';
@@ -12,13 +12,13 @@ import INetUtxo from './Network/INetUtxo';
 export default class Postage {
     config: ServerConfig;
     network: AbstractNetwork;
-    tx: Transaction;
+    postageTx: PostageTransaction;
     hdNode: bitcore.HDPrivateKey;
 
     constructor(config: ServerConfig, network: AbstractNetwork) {
         this.config = config;
         this.network = network;
-        this.tx = new Transaction(this.config);
+        this.postageTx = new PostageTransaction(this.config);
 
         const code = new Mnemonic(this.config.postage.mnemonic);
         this.hdNode = code.toHDPrivateKey();
@@ -33,17 +33,17 @@ export default class Postage {
 
         const paymentProtocol = new PaymentProtocol('BCH');
         const payment = PaymentProtocol.Payment.decode(rawIncomingPayment);
-        const incomingTransactionBitcore = new bitcore.Transaction(payment.transactions[0].toString('hex'));
+        const incomingTx = new bitcore.Transaction(payment.transactions[0].toString('hex'));
 
         // TODO this doesn't do what is expected
         // await this.network.validateSLPInputs(incomingTransaction.ins)
 
-        const neededStampsForTransaction: number = this.tx.getNeededStamps(incomingTransactionBitcore);
-        const stamps: INetUtxo[] = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTransaction, cashAddress);
-        const stampedTransaction: bitcore.Transaction = this.tx.addStampsForTransactionAndSignInputs(incomingTransactionBitcore, this.hdNode, stamps);
-        const txBuf: Buffer = stampedTransaction.toBuffer();
-        const txId: string = await this.network.broadcastTransaction(txBuf);
+        const neededStampsForTx: number = this.postageTx.getNeededStamps(incomingTx);
+        const stamps: INetUtxo[] = await this.network.fetchUTXOsForNumberOfStampsNeeded(neededStampsForTx, cashAddress);
+        const stampedTx: bitcore.Transaction = this.postageTx.addStampsForTransactionAndSignInputs(incomingTx, this.hdNode, stamps);
 
+        const txBuf: Buffer = stampedTx.toBuffer();
+        const txId: string = await this.network.broadcastTransaction(txBuf);
         payment.transactions[0] = txBuf;
         const paymentAck = paymentProtocol.makePaymentACK({ payment, memo: this.config.postage.memo }, 'BCH');
 
@@ -56,7 +56,7 @@ export default class Postage {
         Log.info('Generating stamps...');
         try {
             const utxosToSplit: INetUtxo[] = await this.network.fetchUTXOsForStampGeneration(cashAddress);
-            const splitTx: bitcore.Transaction = this.tx.splitUtxosIntoStamps(utxosToSplit, this.hdNode);
+            const splitTx: bitcore.Transaction = this.postageTx.splitUtxosIntoStamps(utxosToSplit, this.hdNode);
             const txid: string = await this.network.broadcastTransaction(Buffer.from(splitTx.serialize(), 'hex'));
             Log.info(`Broadcasted stamp split tx: ${txid}`);
         } catch (e) {

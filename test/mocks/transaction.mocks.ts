@@ -1,4 +1,6 @@
-export const stampMock: any = [
+import INetUtxo from '../../src/Network/INetUtxo';
+
+export const stampMock: INetUtxo[] = [
     {
         tx_hash: '78ffb00ae72702b0a37f7c2e85cc40caca7fde3086637f18d29e4a208e2bbfb5',
         tx_pos: 0,

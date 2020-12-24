@@ -7,12 +7,15 @@ import { Log } from './Log';
 import errorMessages from './ErrorMessages';
 import INetUtxo from './Network/INetUtxo';
 
-export default class Transaction {
+export default class PostageTransaction {
     static MIN_BYTES_INPUT = 181
     static LOKAD_ID_INDEX = 1
     static TOKEN_ID_INDEX = 4
     static LOKAD_ID_INDEX_VALUE = '534c5000'
     static SLP_OP_RETURN_VOUT = 0
+    static BCH_MAX_OUTPUTS = 2500;
+    static BCH_P2PKH_OUTPUT_SIZE = 34;
+
 
     config: ServerConfig;
 
@@ -47,9 +50,9 @@ export default class Transaction {
     getNeededStamps(tx: bitcore.Transaction): number {
         BigNumber.set({ ROUNDING_MODE: BigNumber.ROUND_UP }); // TODO why is this set here?
 
-        const txScript = tx.outputs[Transaction.SLP_OP_RETURN_VOUT].script.toASM().split(' ');
+        const txScript = tx.outputs[PostageTransaction.SLP_OP_RETURN_VOUT].script.toASM().split(' ');
 
-        if (txScript[Transaction.LOKAD_ID_INDEX] !== Transaction.LOKAD_ID_INDEX_VALUE) {
+        if (txScript[PostageTransaction.LOKAD_ID_INDEX] !== PostageTransaction.LOKAD_ID_INDEX_VALUE) {
             throw new Error(errorMessages.INVALID_SLP_OP_RETURN);
         }
 
@@ -59,7 +62,7 @@ export default class Transaction {
 
             // check if its our own deposit address
             if (this.config.postageRate.address === addrFromOut) {
-                tokenOutputPostage = Transaction.TOKEN_ID_INDEX + i;
+                tokenOutputPostage = PostageTransaction.TOKEN_ID_INDEX + i;
             }
         }
 
@@ -69,7 +72,7 @@ export default class Transaction {
 
         // Check if token being spent is the same as described in the postage rate for the stamp
         // Check if postage is being paid accordingly
-        const postagePaymentTokenId = txScript[Transaction.TOKEN_ID_INDEX];
+        const postagePaymentTokenId = txScript[PostageTransaction.TOKEN_ID_INDEX];
         const stampDetails = this.config.postageRate.stamps
             .filter(stamp => stamp.tokenId === postagePaymentTokenId)
             .pop() || false;
@@ -104,30 +107,27 @@ export default class Transaction {
             })));
         tx.feePerByte(1);
 
-        const stampSize = this.config.postageRate.weight + Transaction.MIN_BYTES_INPUT;
+        const stampSize = this.config.postageRate.weight + PostageTransaction.MIN_BYTES_INPUT;
 
         const originalAmount = utxos.reduce((accumulator, utxo) => accumulator + utxo.value, 0);
         let numberOfPossibleStamps = Math.floor(originalAmount / stampSize);
 
-        const BCH_MAX_OUTPUTS = 2500;
-        const BCH_P2PKH_OUTPUT_SIZE = 34;
-
-        if (numberOfPossibleStamps > BCH_MAX_OUTPUTS) {
-            numberOfPossibleStamps = BCH_MAX_OUTPUTS - 1;
+        if (numberOfPossibleStamps > PostageTransaction.BCH_MAX_OUTPUTS) {
+            numberOfPossibleStamps = PostageTransaction.BCH_MAX_OUTPUTS - 1;
         }
         
         for(let i=0; i < numberOfPossibleStamps; i++){
             // @ts-ignore
             let fee = tx._estimateSize();
             // @ts-ignore
-            if (tx._getUnspentValue() - fee > stampSize + BCH_P2PKH_OUTPUT_SIZE) {
+            if (tx._getUnspentValue() - fee > stampSize + PostageTransaction.BCH_P2PKH_OUTPUT_SIZE) {
                 tx.to(addr, stampSize);
             }
             if (i == numberOfPossibleStamps - 1){
                 // @ts-ignore
                 fee = tx._estimateSize();
                 // @ts-ignore
-                if (tx._getUnspentValue() - fee > bitcore.Transaction.DUST_AMOUNT + BCH_P2PKH_OUTPUT_SIZE) {
+                if (tx._getUnspentValue() - fee > bitcore.Transaction.DUST_AMOUNT + PostageTransaction.BCH_P2PKH_OUTPUT_SIZE) {
                     tx.change(addr);
                 }
             }

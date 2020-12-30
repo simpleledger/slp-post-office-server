@@ -309,8 +309,12 @@
   resolved "https://registry.yarnpkg.com/@sinonjs/text-encoding/-/text-encoding-0.7.1.tgz#8da5c6530915653f3a1f38fd5f101d8c3f8079c5"
   integrity sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
 
-"@types/bitcore-lib-cash@file:DefinitelyTyped/types/bitcore-lib-cash":
-  version "0.0.0"
+"@types/bitcore-lib-cash@^8.23.1":
+  version "8.23.1"
+  resolved "https://registry.yarnpkg.com/@types/bitcore-lib-cash/-/bitcore-lib-cash-8.23.1.tgz#081305550176fc123378b82a43e6b1b730ac9253"
+  integrity sha512-hTk+R6WanFNLzvinfQudKLL/jFmn4pp05ctYbMa103P6jmqQ5Vo/VN1Hxkzt6s5ARMpFyGAqjvimT9ytMSY5nw==
+  dependencies:
+    "@types/node" "*"
 
 "@types/body-parser@*":
   version "1.19.0"

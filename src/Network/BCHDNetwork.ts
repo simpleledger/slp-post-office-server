@@ -51,8 +51,6 @@ export default class BCHDNetwork implements AbstractNetwork {
             }))
             .filter(u => u.value > this.config.postageRate.weight * 2);
 
-        Log.debug(utxos);
-
         if (utxos.length <= 0) {
             throw new Error('Insufficient Balance for Stamp Generation');
         }

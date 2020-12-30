@@ -35,7 +35,6 @@ cd slp-post-office-server
 cp example.env .env
 $(EDITOR) .env
 $(EDITOR) src/Config.ts
-git submodule update --init
 yarn
 yarn start
 ```

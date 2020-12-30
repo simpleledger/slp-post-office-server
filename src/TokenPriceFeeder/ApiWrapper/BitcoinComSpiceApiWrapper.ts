@@ -8,6 +8,7 @@ export default class BitcoinComSpiceApiWrapper extends HttpClient implements IAp
         super('https://api.exchange.bitcoin.com/api/2/public/ticker/SPICEBCH');
     }
 
+    // This returns price in BCH so we can return the value directly
     public async getPrice(): Promise<BigNumber> {
         try {
             const res = await this.instance.get('');

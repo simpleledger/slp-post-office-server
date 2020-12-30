@@ -1,52 +1,76 @@
-# Simple Ledger Post Office Server
-_An implementation of the Simple Ledger Postage Protocol_
+# SLP Post Office Server
 
-### What it does, exactly?
+An implementation of the Simple Ledger Postage Protocol
+
+## Introduction
+
 It is a server that accepts modified [Simple Ledger Payment Protocol](https://github.com/simpleledger/slp-specifications/blob/master/slp-payment-protocol.md) transactions, adds _stamps_ (inputs) to it to cover the
 fee costs, broadcasts the transaction and optionally takes SLP payments for the _postage_.
 
 It enables all sorts of applications where the user can have only SLP tokens in their wallet and send transactions without the need for BCH as "gas", with the Post Office covering the costs of the transaction.
 
-### Demo
-[https://www.youtube.com/watch?v=NGCzujDCgYs](https://www.youtube.com/watch?v=NGCzujDCgYs)
+### Current Status
 
-This demo uses a fork of Badger Wallet to send an SLP payment to someone else through a post office, without having any BCH.
+Right now the master branch contains an alpha release. We encourage you to test with small amounts during integration into your own products and provide feedback.
 
-### Is it ready yet?
-Right now the master branch contains a rough prototype that was used in the demo. 
-You can follow [this page](https://github.com/TOKENLAND/simpleledger-post-office-server/projects/1) to see the progress made towards a stable 0.0.1 version.
+**Use at your own risk, there are no guarantees**.
 
-**Use it at your own risk, there are no guarantees**.
+### More information about the protocol
 
-### Setup
+- [Simple Ledger Postage Protocol Specification](https://slp.dev/specs/slp-postage-protocol/)
+- [Medium article by the protocol creator, Vin Armani](https://medium.com/@vinarmani/simple-ledger-postage-protocol-enabling-a-true-slp-token-ecosystem-on-bitcoin-cash-f960a58c16c4)
 
-- Install the required packages and start the server
+
+## Setup
+
+Install the required packages and start the server. [nvm](https://github.com/nvm-sh/nvm) is not strictly necessary although it makes it easier to use a compatible version of node.
 
 ```
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+nvm install v14.13.1
 nvm use v14.13.1
-git clone https://github.com/simpleledger/post-office-server.git
-cd post-office-server
+npm install -g yarn
+git clone https://github.com/simpleledger/slp-post-office-server.git
+cd slp-post-office-server
 cp example.env .env
 $(EDITOR) .env
+$(EDITOR) src/Config.ts
 git submodule update --init
-npm install -g yarn
 yarn
 yarn start
 ```
 
-TODO add a note here about how to run with a service file or something
+After this, it will start up and request for you to send some BCH to an address so that the server may generate stamps.
+
+### Configuration
+
+Open `./src/Config.ts` to list the stamps, priceFeeders, and other options you may want to override or change.
+
+`Config.postageRate.stamps` describes the different tokens you will accept in your post office.
+
+`Config.priceFeeders` describes custom price updating mechanisms. These are allowed to overlap in case of downtime of an exchange api.
+
+You will also want to take a look at the example token price feeders in `./src/TokenPriceFeeder/ApiWrapper/` - we have examples for 3 different common price manipulations you may have to do for your token, as well as 3 different exchanges. If you have an example for another exchange please open a PR.
 
 
-### More information about the protocol
+### Daemonizing the Server
 
-- [Simple Ledger Postate Protocol Specification](https://github.com/simpleledger/slp-specifications/blob/master/slp-postage-protocol.md)
-- [Medium article by the protocol creator, Vin Armani](https://medium.com/@vinarmani/simple-ledger-postage-protocol-enabling-a-true-slp-token-ecosystem-on-bitcoin-cash-f960a58c16c4)
+#### PM2
 
-### Maintainer
+You may want to use [PM2](https://pm2.keymetrics.io/) to daemonize the server.
 
-@alcipir
+```
+pm2 start yarn --interpreter bash --name postoffice -- start
+```
 
-### License
+#### systemd
+
+You can find an example systemd service file in `slp-post-office-server.service`
+
+Edit this then copy it to /etc/systemd/system
+
+Then run `systemctl daemon-reload` and `systemctl start slp-post-office-server`
+
+## License
 
 MIT License

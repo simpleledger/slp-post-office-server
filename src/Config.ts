@@ -4,6 +4,9 @@ import bitcore from 'bitcore-lib-cash';
 import Mnemonic from 'bitcore-mnemonic';
 import { BigNumber } from 'bignumber.js';
 
+/// HERE YOU CAN ADD YOUR CUSTOM TOKEN PRICE FEEDERS
+/// TO USE THEM, CONFIGURE THEM AS SHOWN INSIDE CONFIG BELOW
+
 // import CoinFlexFLEXApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinflexFLEXApiWrapper'
 import BitcoinComSpiceApiWrapper from './TokenPriceFeeder/ApiWrapper/BitcoinComSpiceApiWrapper'
 // import CoinexUSDTApiWrapper from './TokenPriceFeeder/ApiWrapper/CoinexUSDTApiWrapper'
@@ -78,16 +81,35 @@ const Config: ServerConfig = {
         weight: 365,
         transactionttl: 30,
         stamps: [
+            // Here you should enumerate all of the tokens you'd like to support
+            // you can have the rate be updated regularly by using the priceFeeders config below
             {
                 name: "Spice",
                 symbol: "SPICE",
                 tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
                 decimals: 8,
+                // cost per satoshi in slp base units 
+                // base units are the token prior to having decimals applied to it
+                // spice has 8 decimals, so for each 1 spice there are 10^8 base units of spice
                 rate: new BigNumber(10)
             }
         ]
     },
     priceFeeders: [
+        // SPICE / exchange.bitcoin.com
+        // for demonstration purposes, you should disable if not using SPICE
+        {
+            tick: 5, // how often to update price (in seconds)
+            tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
+            feederClass: BitcoinComSpiceApiWrapper, // reference the associated TokenPriceFeeder
+            useInitialStampRateAsMin: false, // if true: prevent going under the specified rate in postageRate.stamps
+
+            // you may apply a custom rule that takes a price (in BCH) and applies some modification to it.
+            // for this case, we just multiply the price 1.9x, giving us a ~0.9% profit
+            // if no custom rule is provided a default of 2x will be done
+            rule: (n: BigNumber) => new BigNumber(0.00000546).dividedBy(n).times(1.9),
+        },
+
         /*
         // FLEX / coinflex.com
         {
@@ -96,15 +118,6 @@ const Config: ServerConfig = {
             "useInitialStampRateAsMin": true
         },
         */
-
-        // SPICE / exchange.bitcoin.com
-        {
-            tick: 5,
-            tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
-            feederClass: BitcoinComSpiceApiWrapper,
-            useInitialStampRateAsMin: false,
-            rule: (n: BigNumber) => new BigNumber(0.00000546).dividedBy(n).times(1.9),
-        },
 
         /*
         // USDT / coinex.com

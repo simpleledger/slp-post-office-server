@@ -1,0 +1,16 @@
+[Unit]
+Description=SLP Post Office Server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=user
+Group=user
+Type=simple
+WorkingDirectory=/home/user/slp-post-office-server
+ExecStart=/home/user/slp-post-office-server/start.sh
+KillSignal=SIGQUIT
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

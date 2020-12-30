@@ -8,11 +8,13 @@ export default class CoinFlexFLEXApiWrapper extends HttpClient implements IApiWr
         super('https://v2api.coinflex.com/v2/ticker');
     }
 
+    // This returns price in USD so we need to divide by the BCH price to get price in BCH
     public async getPrice(): Promise<BigNumber> {
         try {
-            const coinFlexResponse = await this.instance.get('');
-            const flexUsdTokenData = coinFlexResponse.filter(item => item.marketCode === 'FLEX-USD').pop();
-            return new BigNumber(flexUsdTokenData.markPrice);
+            const res = await this.instance.get('');
+            const flexUsd = new BigNumber(res.filter(o => o.marketCode === 'FLEX-USD').pop().markPrice);
+            const bchUsd = new BigNumber(res.filter(o => o.marketCode === 'BCH-USD').pop().markPrice);
+            return new flexUsd.dividedBy(bchUsd);
         } catch(e) {
             Log.error(`Error while trying to get price data from CoinFlex: ${e.message}`);
         }

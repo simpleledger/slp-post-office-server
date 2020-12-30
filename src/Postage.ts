@@ -24,7 +24,7 @@ export default class Postage {
     }
 
     getDepositAddress(): bitcore.Address {
-        return this.config.postage.hdNode.privateKey.toAddress();
+        return this.config.postage.privateKey.toAddress();
     }
 
     async addStampsToTxAndBroadcast(rawIncomingPayment: Buffer): Promise<any> {
@@ -51,10 +51,15 @@ export default class Postage {
     }
 
     async generateStamps(): Promise<void> {
-        Log.info('Generating stamps...');
         try {
-            const utxosToSplit: INetUtxo[] = await this.network.fetchUTXOsForStampGeneration(this.getDepositAddress());
-            const splitTx: bitcore.Transaction = this.postageTx.splitUtxosIntoStamps(utxosToSplit);
+            const utxos: INetUtxo[] = await this.network.fetchUTXOsForStampGeneration(this.getDepositAddress());
+
+            if (utxos.length <= 0) {
+                Log.debug('Stamp Generation did not run due to lack of utxos');
+                return;
+            }
+
+            const splitTx: bitcore.Transaction = this.postageTx.splitUtxosIntoStamps(utxos);
             const txid: string = await this.network.broadcastTransaction(Buffer.from(splitTx.serialize(), 'hex'));
             Log.info(`Broadcasted stamp split tx: ${txid}`);
         } catch (e) {

@@ -1,12 +1,12 @@
-import Mnemonic from 'bitcore-mnemonic';
+import bitcore from 'bitcore-lib-cash';
 import { BigNumber } from 'bignumber.js';
 import { Config, PostageConfig, PostageRateConfig } from './../../src/Config'
 
 const mockPostageConfig: PostageConfig = {
-    hdNode: new Mnemonic(process.env.MNEMONIC).toHDPrivateKey(),
     network: 'mainnet',
     memo: "MOCK Postage",
     stampGenerationIntervalSeconds: 40,
+    privateKey: bitcore.PrivateKey.fromWIF('KxNmTLoGeyonWiiKbb3D1UjPcrv8B4wgdf3ExzfejvrZHruCWo1D'),
 };
 
 const mockPostageRateConfig: PostageRateConfig = {

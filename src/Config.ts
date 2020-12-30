@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 import bitcore from 'bitcore-lib-cash';
-import Mnemonic from 'bitcore-mnemonic';
 import { BigNumber } from 'bignumber.js';
 
 /// HERE YOU CAN ADD YOUR CUSTOM TOKEN PRICE FEEDERS
@@ -23,7 +22,7 @@ export interface PostageConfig {
     memo: string;
     network: string;
     stampGenerationIntervalSeconds: number;
-    hdNode: bitcore.HDPrivateKey;
+    privateKey: bitcore.PrivateKey;
 }
 
 export interface PostageRateConfig {
@@ -59,6 +58,11 @@ export interface ServerConfig {
     priceFeeders: PriceFeederConfig[];
 }
 
+// this environment variable is not set to a default
+if (process.env.PRIVATE_KEY === '') {
+    throw new Error('must set PRIVATE_KEY environment variable');
+}
+
 const Config: ServerConfig = {
     server: {
         port: Number(process.env.SERVER_PORT ? process.env.SERVER_PORT : 3000),
@@ -70,7 +74,7 @@ const Config: ServerConfig = {
         server: process.env.BCHD_SERVER,
     },
     postage: {
-        hdNode: new Mnemonic(process.env.MNEMONIC).toHDPrivateKey(),
+        privateKey: bitcore.PrivateKey.fromWIF(process.env.PRIVATE_KEY),
         network: process.env.NETWORK,
         memo: process.env.MEMO,
         stampGenerationIntervalSeconds: Number(process.env.STAMP_GENERATION_INTERVAL ? process.env.STAMP_GENERATION_INTERVAL : 600),
@@ -88,6 +92,16 @@ const Config: ServerConfig = {
                 symbol: "SPICE",
                 tokenId: "4de69e374a8ed21cbddd47f2338cc0f479dc58daa2bbe11cd604ca488eca0ddf",
                 decimals: 8,
+                // cost per satoshi in slp base units
+                // base units are the token prior to having decimals applied to it
+                // spice has 8 decimals, so for each 1 spice there are 10^8 base units of spice
+                rate: new BigNumber(10)
+            },
+            {
+                name: "Honk",
+                symbol: "Honk",
+                tokenId: "7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1",
+                decimals: 0,
                 // cost per satoshi in slp base units 
                 // base units are the token prior to having decimals applied to it
                 // spice has 8 decimals, so for each 1 spice there are 10^8 base units of spice

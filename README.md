@@ -71,6 +71,16 @@ Edit this then copy it to /etc/systemd/system
 
 Then run `systemctl daemon-reload` and `systemctl start slp-post-office-server`
 
+## Wallet Support
+
+As the Post Office is still new there is not wallet support for it yet. If you are a developer and would like to test or inspect the fork of Electron Cash SLP with the Post Office you can find the link below.
+
+- [Electron Cash SLP](https://github.com/OPReturnCode/Electron-Cash-SLP/commits/post-office) (Development)
+
+## Special Thanks
+
+- bchinjim who funded the initial open source post office prototype
+
 ## License
 
 MIT License

@@ -4,6 +4,7 @@ import { ServerConfig } from './../Config';
 
 export default abstract class AbstractNetwork {
     constructor(config: ServerConfig) {}
+    abstract fetchUTXOs: (address: bitcore.Address) => Promise<INetUtxo[]>;
     abstract fetchUTXOsForStampGeneration: (address: bitcore.Address) => Promise<INetUtxo[]>;
     abstract fetchUTXOsForNumberOfStampsNeeded: (numberOfStamps: number, address: bitcore.Address) => Promise<INetUtxo[]>;
     abstract validateSLPInputs: (inputs: bitcore.Transaction.Input[]) => Promise<void>;

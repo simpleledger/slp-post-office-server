@@ -14,7 +14,7 @@ export default class CoinFlexFLEXApiWrapper extends HttpClient implements IApiWr
             const res = await this.instance.get('');
             const flexUsd = new BigNumber(res.filter(o => o.marketCode === 'FLEX-USD').pop().markPrice);
             const bchUsd = new BigNumber(res.filter(o => o.marketCode === 'BCH-USD').pop().markPrice);
-            return new flexUsd.dividedBy(bchUsd);
+            return flexUsd.dividedBy(bchUsd);
         } catch(e) {
             Log.error(`Error while trying to get price data from CoinFlex: ${e.message}`);
         }

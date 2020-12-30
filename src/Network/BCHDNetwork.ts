@@ -25,7 +25,7 @@ export default class BCHDNetwork implements AbstractNetwork {
         }
     }
 
-    async fetchUTXOsForStampGeneration(address: bitcore.Address): Promise<INetUtxo[]> {
+    async fetchUTXOs(address: bitcore.Address): Promise<INetUtxo[]> {
         await this.checkServerSLPIndexingEnabled();
 
         const res = await this.bchd.getAddressUtxos({
@@ -34,39 +34,7 @@ export default class BCHDNetwork implements AbstractNetwork {
             includeTokenMetadata: true,
         });
 
-        const utxos: INetUtxo[] = res
-            .getOutputsList()
-            .filter(u => u.getSlpToken() == undefined) // get only non-slp utxos
-            .map(u => ({
-                tx_hash: Buffer.from(
-                    u
-                        .getOutpoint()!
-                        .getHash_asU8()
-                        .reverse(),
-                ).toString('hex'),
-                tx_pos: u.getOutpoint()!.getIndex(),
-                value: u.getValue(),
-                height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
-                script: Buffer.from(u.getPubkeyScript_asU8()).toString('hex'),
-            }))
-            .filter(u => u.value > this.config.postageRate.weight * 2);
-
-        if (utxos.length <= 0) {
-            throw new Error('Insufficient Balance for Stamp Generation');
-        }
-        return utxos;
-    }
-
-    async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, address: bitcore.Address): Promise<INetUtxo[]> {
-        await this.checkServerSLPIndexingEnabled();
-
-        const res = await this.bchd.getAddressUtxos({
-            address: address.toString(),
-            includeMempool: true,
-            includeTokenMetadata: true,
-        });
-
-        const utxos: INetUtxo[] = res
+        return res
             .getOutputsList()
             .filter(u => u.getSlpToken() == undefined) // get only non-slp utxos
             .map(u => ({
@@ -81,7 +49,15 @@ export default class BCHDNetwork implements AbstractNetwork {
                 height: u.getBlockHeight() < 2147483647 ? u.getBlockHeight() : -1,
                 script: Buffer.from(u.getPubkeyScript_asU8()).toString('hex'),
             }));
+    }
 
+    async fetchUTXOsForStampGeneration(address: bitcore.Address): Promise<INetUtxo[]> {
+        return (await this.fetchUTXOs(address))
+            .filter(u => u.value > this.config.postageRate.weight * 2);
+    }
+
+    async fetchUTXOsForNumberOfStampsNeeded(numberOfStamps: number, address: bitcore.Address): Promise<INetUtxo[]> {
+        const utxos = await this.fetchUTXOs(address);
         if (utxos.length < numberOfStamps) {
             throw new Error(errorMessages.UNAVAILABLE_STAMPS);
         }

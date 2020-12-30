@@ -85,44 +85,47 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
 /*
  * INITIALIZE SERVER
  */
+(async () => {
 
-Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
-    new TokenPriceFeeder(priceFeeder).run();
-});
-
-Log.info(`Send stamps to: ${postage.getDepositAddress().toString()}`);
-
-setInterval(
-    () => postage.generateStamps(),
-    1000 * Config.postage.stampGenerationIntervalSeconds
-);
-postage.generateStamps();
-
-const server = app.listen(Config.server.port, Config.server.host, async () => {
-    Log.info(`Post Office listening ${Config.server.host}:${Config.server.port}`);
-});
-
-let connections = [];
-server.on('connection', (connection): void => {
-    connections.push(connection);
-    connection.on('close', () => connections = connections.filter(curr => curr !== connection));
-});
-
-function shutDown(): void {
-    Log.info('Received kill signal, shutting down gracefully');
-    server.close(() => {
-        Log.info('Closed out remaining connections');
-        process.exit(0);
+    Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
+        new TokenPriceFeeder(priceFeeder).run();
     });
 
-    setTimeout(() => {
-        Log.error('Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-    }, 10000);
+    Log.info(`Send stamps to: ${postage.getDepositAddress().toString()}`);
+    Log.info(`Found ${(await network.fetchUTXOs(postage.getDepositAddress())).length} stamps`);
 
-    connections.forEach(curr => curr.end());
-    setTimeout(() => connections.forEach(curr => curr.destroy()), 5000);
-}
+    setInterval(
+        () => postage.generateStamps(),
+        1000 * Config.postage.stampGenerationIntervalSeconds
+    );
+    postage.generateStamps();
 
-process.on('SIGTERM', shutDown);
-process.on('SIGINT', shutDown);
+    const server = app.listen(Config.server.port, Config.server.host, async () => {
+        Log.info(`Post Office listening ${Config.server.host}:${Config.server.port}`);
+    });
+
+    let connections = [];
+    server.on('connection', (connection): void => {
+        connections.push(connection);
+        connection.on('close', () => connections = connections.filter(curr => curr !== connection));
+    });
+
+    function shutDown(): void {
+        Log.info('Received kill signal, shutting down gracefully');
+        server.close(() => {
+            Log.info('Closed out remaining connections');
+            process.exit(0);
+        });
+
+        setTimeout(() => {
+            Log.error('Could not close connections in time, forcefully shutting down');
+            process.exit(1);
+        }, 10000);
+
+        connections.forEach(curr => curr.end());
+        setTimeout(() => connections.forEach(curr => curr.destroy()), 5000);
+    }
+
+    process.on('SIGTERM', shutDown);
+    process.on('SIGINT', shutDown);
+})()

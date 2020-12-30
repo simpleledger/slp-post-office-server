@@ -45,7 +45,7 @@ export default class PostageTransaction {
         for (let i = lastSlpInputVin; i < tx.inputs.length; ++i) {
             Log.debug(`Signing... ${i}`);
 
-            const signatures: bitcore.crypto.Signature[] = tx.inputs[i].getSignatures(tx, this.config.postage.hdNode.privateKey, i);
+            const signatures: bitcore.crypto.Signature[] = tx.inputs[i].getSignatures(tx, this.config.postage.privateKey, i);
 
             if (signatures.length === 0) {
                 throw new Error('Signature not found');
@@ -106,7 +106,7 @@ export default class PostageTransaction {
     }
 
     splitUtxosIntoStamps(utxos: INetUtxo[]): bitcore.Transaction {
-        const addr: bitcore.Address = this.config.postage.hdNode.privateKey.toAddress();
+        const addr: bitcore.Address = this.config.postage.privateKey.toAddress();
 
         const tx = new bitcore.Transaction()
             .from(utxos.map(u => new bitcore.Transaction.UnspentOutput({
@@ -142,7 +142,7 @@ export default class PostageTransaction {
                 }
             }
         }        
-        tx.sign(this.config.postage.hdNode.privateKey);
+        tx.sign(this.config.postage.privateKey);
 
         return tx;
     }

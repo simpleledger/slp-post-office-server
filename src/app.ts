@@ -85,7 +85,7 @@ app.post('/postage', async function(req: express.Request, res: express.Response)
 /*
  * INITIALIZE SERVER
  */
-(async () => {
+(async (): Promise<void> => {
 
     Config.priceFeeders.forEach((priceFeeder: PriceFeederConfig) => {
         new TokenPriceFeeder(priceFeeder).run();

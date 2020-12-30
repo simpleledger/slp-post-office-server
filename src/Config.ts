@@ -121,7 +121,7 @@ const Config: ServerConfig = {
             // you may apply a custom rule that takes a price (in BCH) and applies some modification to it.
             // for this case, we just multiply the price 1.9x, giving us a ~0.9% profit
             // if no custom rule is provided a default of 2x will be done
-            rule: (n: BigNumber) => new BigNumber(0.00000546).dividedBy(n).times(1.9),
+            rule: (n: BigNumber): BigNumber => new BigNumber(0.00000546).dividedBy(n).times(1.9),
         },
 
         /*
